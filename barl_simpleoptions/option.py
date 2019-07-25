@@ -24,6 +24,9 @@ class Option(ABC) :
         Arguments:
             state {State} -- The state whose membership to the initiation set is
             to be tested.
+            
+            Returns:
+                bool -- [description]
         """
         pass
 
@@ -34,6 +37,9 @@ class Option(ABC) :
         
         Arguments:
             state {State} -- The environmental state in which the option chooses an action in.
+
+        Returns:
+            action [Hashable] -- The action specified by the option's policy in this state.
         """
         pass
 
@@ -44,6 +50,9 @@ class Option(ABC) :
         
         Arguments:
             state {State} -- The state in which to test for termination.
+        
+        Returns:
+            bool -- Whether or not this option terminates in this state.
         """
         pass
 
