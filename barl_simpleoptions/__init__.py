@@ -3,3 +3,5 @@ from option import PrimitiveOption
 from option import SubgoalOption
 
 from state import State
+
+from environment import Environment

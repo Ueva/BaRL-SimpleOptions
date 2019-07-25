@@ -1,6 +1,6 @@
 import os
 import math
-import pickle
+import json
 import random
 import numpy as np
 import networkx as nx
@@ -37,7 +37,7 @@ class State(ABC) :
         Returns the list of actions available in this state.
 
         Returns:
-            [List[Hashable]] -- The list of actions available in this state.
+            List[Hashable] -- The list of actions available in this state.
         """
         pass
 
