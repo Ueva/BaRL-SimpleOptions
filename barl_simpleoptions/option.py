@@ -5,8 +5,9 @@ import random
 import numpy as np
 import networkx as nx
 
-from state import State
 from abc import ABC, abstractmethod
+
+from barl_simpleoptions.state import State
 
 class Option(ABC) :
     """
