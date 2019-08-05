@@ -18,7 +18,7 @@ class Option(ABC) :
         pass
 
     @abstractmethod
-    def initiation(self, state : State) :
+    def initiation(self, state : State) -> bool :
         """
         Returns whether or not a given state is in this option's initation set.
         
@@ -45,7 +45,7 @@ class Option(ABC) :
         pass
 
     @abstractmethod
-    def termination(self, state : State) :
+    def termination(self, state : State) -> bool :
         """
         Returns whether or not the option terminates in the given state.
         

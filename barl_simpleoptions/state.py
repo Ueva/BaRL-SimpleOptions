@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 
 from abc import ABC, abstractmethod
+from typing import List
 
 class State(ABC) :
     """
@@ -55,7 +56,7 @@ class State(ABC) :
         pass
 
     @abstractmethod
-    def is_action_legal(self, action) :
+    def is_action_legal(self, action) -> bool :
         """
         Returns whether the given action is legal in this state.
         
@@ -68,7 +69,7 @@ class State(ABC) :
         pass
 
     @abstractmethod
-    def is_state_legal(self) :
+    def is_state_legal(self) -> bool :
         """
         Returns whether or not the current state is legal.
 
@@ -78,7 +79,7 @@ class State(ABC) :
         pass
 
     @abstractmethod
-    def is_initial_state(self) :
+    def is_initial_state(self) -> bool :
         """
         Returns whether or not this state is an initial state.
 
@@ -88,7 +89,7 @@ class State(ABC) :
         pass
 
     @abstractmethod
-    def is_terminal_state(self) :
+    def is_terminal_state(self) -> bool :
         """
         Returns whether or not this is a terminal state.
         
@@ -98,7 +99,7 @@ class State(ABC) :
         pass
         
     @abstractmethod
-    def get_successors(self) :
+    def get_successors(self) -> List[State] :
         """
         Returns a list of all states which can be reached from this state in one time step.
 
@@ -107,7 +108,7 @@ class State(ABC) :
         """
         pass
 
-    def get_predecessors(self) :
+    def get_predecessors(self) -> List[State] :
         """
         Returns a list of all states from which it is possible to transition to this state in one time step.
 
@@ -116,7 +117,7 @@ class State(ABC) :
         """
         pass
 
-    def get_transition_action(self, next_state) :
+    def get_transition_action(self, next_state : State) :
         """
         Returns a list of actions which can be taken in order to transition to a given next state.
         

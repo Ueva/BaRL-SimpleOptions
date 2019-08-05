@@ -5,6 +5,9 @@ import random
 import numpy as np
 import networkx as nx
 
+from typing import Tuple
+from typing import List
+
 from barl_simpleoptions.option import Option
 from barl_simpleoptions.option import PrimitiveOption
 from barl_simpleoptions.option import SubgoalOption
@@ -27,7 +30,7 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def step(self, action) :
+    def step(self, action) -> Tuple[State, float, bool] :
         """
         This method implements the one-step transition dynamics of the environment. Given an action,
         the environment transitions to some next state accordingly.
@@ -37,11 +40,15 @@ class Environment(ABC) :
 
         Returns:
             State -- The next environmental state.
+            float -- The reward earned by the agent by taking the given action in the current state.
+            bool -- Whether or not the new state is terminal.
+
+        next_state, reward, terminal -- ENSURE ORDER IS CORRECT!!!
         """
         pass
 
     @abstractmethod
-    def reset(self) :
+    def reset(self) -> State :
         """
         This method initialises, or reinitialises, the environment prior to starting a new episode.
         It returns an initial state.
@@ -52,7 +59,7 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def get_available_options(self) :
+    def get_available_options(self) -> List[option] :
         """
         This method returns the options (primitive options + subgoal options) which are available to the
         agent in the current environmental state.
