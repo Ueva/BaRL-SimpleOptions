@@ -17,7 +17,7 @@ class OptionAgent :
     and intra-option learning algorithms.
     """
 
-    def __init__(self, env : Environment, epsilon : float, alpha : float, gamma : float) :
+    def __init__(self, env : Environment, epsilon: float = 0.15, alpha : float = 0.2, gamma : float = 0.9) :
         """
         Constructs a new OptionAgent object.
 
