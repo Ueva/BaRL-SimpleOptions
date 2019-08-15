@@ -4,7 +4,7 @@ with open("README.md", "r") as f :
     long_description = f.read()
 
 setuptools.setup(
-    name = "barl-simpleoptions",
+    name = "barl_simpleoptions",
     version = "0.0.2",
     author = "Joshua Evans",
     author_email = "jbe25@bath.ac.uk",

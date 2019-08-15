@@ -17,7 +17,7 @@ class OptionAgent :
     and intra-option learning algorithms.
     """
 
-    def __init__(self, env : Environment, epsilon: float = 0.15, alpha : float = 0.2, gamma : float = 0.9) :
+    def __init__(self, env : 'Environment', epsilon: float = 0.15, alpha : float = 0.2, gamma : float = 0.9) :
         """
         Constructs a new OptionAgent object.
 
@@ -36,7 +36,7 @@ class OptionAgent :
         self.current_option = None
         self.current_option_initiation_state = None
 
-    def macro_learn(self, initiation_state : State, option : Option, rewards : List[float], termination_state : State) :
+    def macro_learn(self, initiation_state : 'State', option : 'Option', rewards : List[float], termination_state : 'State') :
         """
         Performs a macro-Q learning update.
         
@@ -66,7 +66,7 @@ class OptionAgent :
         self.q_table[(str(initiation_state), str(option))] = old_value + self.alpha * (math.pow(self.gamma, len(rewards)) * max_q - old_value + discounted_sum_of_rewards)
         
 
-    def intra_option_learn(self, state : State, action, reward, next_state : State) :
+    def intra_option_learn(self, state : 'State', action, reward : float, next_state : 'State') :
         """
         Performs a one-step intra-option learning update.
         
@@ -100,7 +100,7 @@ class OptionAgent :
 
                 self.q_table[(str(state), str(option))] = old_value + self.alpha * (value - old_value)
 
-    def select_action(self, state : State) -> Option :
+    def select_action(self, state : 'State') -> 'Option' :
         """
         Returns the selected action for the given state.
         
