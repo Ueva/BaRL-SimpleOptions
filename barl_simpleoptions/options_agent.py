@@ -149,7 +149,7 @@ class OptionAgent :
             {List[float]} -- A list containing the reward earned during each episode.
         """
 
-        episode_rewards = []
+        episode_rewards = [None] * num_episodes
 
         for episode_i in range(0, num_episodes) :
             
@@ -173,7 +173,7 @@ class OptionAgent :
                     action = option.policy(action)
 
                 # Take action, observe reward, next state, terminal.
-                next_state, reward, terminal = env.step(action)
+                next_state, reward, terminal = self.env.step(action)
                 option_rewards.append(reward)
 
                 # Perform one-step intra-option learning update.
@@ -194,6 +194,6 @@ class OptionAgent :
                 state = next_state
 
             # Record the cumulative rewards earned during thsi episode.
-            episode_rewards.append(sum_rewards)
+            episode_rewards[episode_i] = sum_rewards
         
         return episode_rewards
