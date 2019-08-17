@@ -93,9 +93,7 @@ class BaseEnvironment(ABC) :
     def get_available_options(self) :
         # Loops through every option and sees whether the
         # current state is in its initiation set.
-        available_options = []
-        for option in self.options :
-            if (option.initiation(self.current_state)) :
-                available_options.append(option)
+        
+        available_options = [option for option in self.options if option.initiation(self.current_state)]
         
         return available_options
