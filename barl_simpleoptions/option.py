@@ -153,7 +153,7 @@ class SubgoalOption(Option) :
             self.initiation_set = list(initiation_set).copy()
 
     def __str__(self) :
-        return "SubgoalOption({}~{})".format(str(self.subgoal, self.policy_file_path))
+        return "SubgoalOption({}~{})".format(str(self.subgoal), str(self.policy_file_path))
 
     def __repr__(self):
         return str(self)
