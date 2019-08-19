@@ -130,7 +130,7 @@ class State(ABC) :
         """
         pass
 
-    def generate_interaction_graph(self, initial_states : List[State]) :
+    def generate_interaction_graph(self, initial_states : List["State"]) :
         """
         Generates the state-transition graph for this environment.
         """
@@ -148,7 +148,7 @@ class State(ABC) :
             # Add each current new successor to our list of processed states.
             next_successor_states = []
             for successor_state in current_successor_states :
-                if (not successor_state in current_successor_states) :
+                if (not successor_state in states) :
                     states.append(successor_state)
 
                     # Add this state's successors to the successor list.
@@ -163,10 +163,10 @@ class State(ABC) :
         for state in states :
             
             # Add state to interaction graph.
-            interaction_graph.add_node(state)
+            interaction_graph.add_node(str(state))
 
             for successor_state in state.get_successors() :
-                interaction_graph.add_node(successor_state)
-                interaction_graph.add_edge(state, successor_state)
+                interaction_graph.add_node(str(successor_state))
+                interaction_graph.add_edge(str(state), str(successor_state))
         
         return interaction_graph
