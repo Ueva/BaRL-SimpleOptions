@@ -18,7 +18,7 @@ class Option(ABC) :
         pass
 
     @abstractmethod
-    def initiation(self, state : State) -> bool :
+    def initiation(self, state : 'State') -> bool :
         """
         Returns whether or not a given state is in this option's initation set.
         
@@ -32,7 +32,7 @@ class Option(ABC) :
         pass
 
     @abstractmethod
-    def policy(self, state : State) :
+    def policy(self, state : 'State') :
         """
         Returns the action specified by this option's policy for a given state.
         
@@ -45,7 +45,7 @@ class Option(ABC) :
         pass
 
     @abstractmethod
-    def termination(self, state : State) -> bool :
+    def termination(self, state : 'State') -> bool :
         """
         Returns whether or not the option terminates in the given state.
         
@@ -96,7 +96,7 @@ class SubgoalOption(Option) :
     be executed between an initiation state and a termination state.
     """
     
-    def __init__(self, subgoal : State, graph : nx.DiGraph, policy_file_path : str, initiation_set_size : int) :
+    def __init__(self, subgoal : 'State', graph : nx.DiGraph, policy_file_path : str, initiation_set_size : int) :
         """Constructs a new subgoal option.
         
         Arguments:
@@ -117,10 +117,10 @@ class SubgoalOption(Option) :
         with open(policy_file_path, mode = "rb") as f:
             self.policy_dict = json.load(f)
 
-    def initiation(self, state : State) :
+    def initiation(self, state : 'State') :
         return str(state) in self.initiation_set
 
-    def policy(self, state : State) :
+    def policy(self, state : 'State') :
         return self.policy_dict[str(state)]
 
     def termination(self, state : State) :
@@ -153,7 +153,7 @@ class SubgoalOption(Option) :
             self.initiation_set = list(initiation_set).copy()
 
     def __str__(self) :
-        return "SubgoalOption({}~{})".format(str(self.subgoal, self.policy_file_path))
+        return "SubgoalOption({}~{})".format(str(self.subgoal), str(self.policy_file_path))
 
     def __repr__(self):
         return str(self)

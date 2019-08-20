@@ -27,10 +27,10 @@ class State(ABC) :
         return str(self)
 
     @abstractmethod
-    def __eq__(self, other_state : State):
+    def __eq__(self, other_state : 'State'):
         pass # Make sure that you have defined equality between your states correctly.
 
-    def __ne__(self, other_state : State):
+    def __ne__(self, other_state : 'State'):
         return not self.__eq__(other_state)
     
     @abstractmethod
@@ -100,7 +100,7 @@ class State(ABC) :
         pass
         
     @abstractmethod
-    def get_successors(self) -> List[State] :
+    def get_successors(self) -> List['State'] :
         """
         Returns a list of all states which can be reached from this state in one time step.
 
@@ -109,7 +109,7 @@ class State(ABC) :
         """
         pass
 
-    def get_predecessors(self) -> List[State] :
+    def get_predecessors(self) -> List['State'] :
         """
         Returns a list of all states from which it is possible to transition to this state in one time step.
 
@@ -118,7 +118,7 @@ class State(ABC) :
         """
         pass
 
-    def get_transition_action(self, next_state : State) :
+    def get_transition_action(self, next_state : 'State') :
         """
         Returns a list of actions which can be taken in order to transition to a given next state.
         

@@ -17,7 +17,7 @@ class OptionAgent :
     and intra-option learning algorithms.
     """
 
-    def __init__(self, env : Environment, epsilon: float = 0.15, alpha : float = 0.2, gamma : float = 0.9) :
+    def __init__(self, env : 'Environment', epsilon: float = 0.15, alpha : float = 0.2, gamma : float = 0.9) :
         """
         Constructs a new OptionAgent object.
 
@@ -36,7 +36,7 @@ class OptionAgent :
         self.current_option = None
         self.current_option_initiation_state = None
 
-    def macro_learn(self, initiation_state : State, option : Option, rewards : List[float], termination_state : State) :
+    def macro_learn(self, initiation_state : 'State', option : 'Option', rewards : List[float], termination_state : 'State') :
         """
         Performs a macro-Q learning update.
         
@@ -50,9 +50,13 @@ class OptionAgent :
         # Perform macro-q learning update.
         old_value = self.q_table.get((str(initiation_state), str(option)), 0)
     
-        discounted_sum_of_rewards = 0
-        for i in range (0, len(rewards)) :
-            discounted_sum_of_rewards += math.pow(self.gamma, i) * rewards[0]
+        num_rewards = len(rewards)
+        
+        # Fill an array with gamma^index
+        gamma_exp = np.power(np.full(num_rewards, self.gamma), np.arange(1, 1 + num_rewards))
+        
+        # Element-wise multiply and then sum array
+        discounted_sum_of_rewards = np.sum(np.multiply(rewards * gamma_exp))
 
         # Get Q-Values for Next State.
         q_values = [self.q_table.get((str(termination_state), str(o)), 0) for o in self.env.get_available_options(termination_state)]
@@ -66,7 +70,7 @@ class OptionAgent :
         self.q_table[(str(initiation_state), str(option))] = old_value + self.alpha * (math.pow(self.gamma, len(rewards)) * max_q - old_value + discounted_sum_of_rewards)
         
 
-    def intra_option_learn(self, state : State, action, reward, next_state : State) :
+    def intra_option_learn(self, state : 'State', action, reward : float, next_state : 'State') :
         """
         Performs a one-step intra-option learning update.
         
@@ -100,7 +104,7 @@ class OptionAgent :
 
                 self.q_table[(str(state), str(option))] = old_value + self.alpha * (value - old_value)
 
-    def select_action(self, state : State) -> Option :
+    def select_action(self, state : 'State') -> 'Option' :
         """
         Returns the selected action for the given state.
         
@@ -145,7 +149,7 @@ class OptionAgent :
             {List[float]} -- A list containing the reward earned during each episode.
         """
 
-        episode_rewards = []
+        episode_rewards = [None] * num_episodes
 
         for episode_i in range(0, num_episodes) :
             
@@ -169,7 +173,7 @@ class OptionAgent :
                     action = option.policy(action)
 
                 # Take action, observe reward, next state, terminal.
-                next_state, reward, terminal = env.step(action)
+                next_state, reward, terminal = self.env.step(action)
                 option_rewards.append(reward)
 
                 # Perform one-step intra-option learning update.
@@ -190,6 +194,6 @@ class OptionAgent :
                 state = next_state
 
             # Record the cumulative rewards earned during thsi episode.
-            episode_rewards.append(sum_rewards)
+            episode_rewards[episode_i] = sum_rewards
         
         return episode_rewards
