@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import List
 
 class State(ABC) :
@@ -26,10 +27,10 @@ class State(ABC) :
         return str(self)
 
     @abstractmethod
-    def __eq__(self, other_state : State):
+    def __eq__(self, other_state : 'State'):
         pass # Make sure that you have defined equality between your states correctly.
 
-    def __ne__(self, other_state : State):
+    def __ne__(self, other_state : 'State'):
         return not self.__eq__(other_state)
     
     @abstractmethod
@@ -99,7 +100,7 @@ class State(ABC) :
         pass
         
     @abstractmethod
-    def get_successors(self) -> List[State] :
+    def get_successors(self) -> List['State'] :
         """
         Returns a list of all states which can be reached from this state in one time step.
 
@@ -108,7 +109,7 @@ class State(ABC) :
         """
         pass
 
-    def get_predecessors(self) -> List[State] :
+    def get_predecessors(self) -> List['State'] :
         """
         Returns a list of all states from which it is possible to transition to this state in one time step.
 
@@ -117,7 +118,7 @@ class State(ABC) :
         """
         pass
 
-    def get_transition_action(self, next_state : State) :
+    def get_transition_action(self, next_state : 'State') :
         """
         Returns a list of actions which can be taken in order to transition to a given next state.
         
@@ -128,3 +129,44 @@ class State(ABC) :
             List[Hashable] -- A list of actions which will allow the desired next state to be reached in one time step.
         """
         pass
+
+    def generate_interaction_graph(self, initial_states : List["State"]) :
+        """
+        Generates the state-transition graph for this environment.
+        """
+
+        states = []
+        current_successor_states = []
+
+        # Add initial states to current successor list.
+        for initial_state in initial_states :
+            current_successor_states.append(initial_state)
+
+        # While we have no new successor states to process.
+        while (not len(current_successor_states) == 0) :
+
+            # Add each current new successor to our list of processed states.
+            next_successor_states = []
+            for successor_state in current_successor_states :
+                if (not successor_state in states) :
+                    states.append(successor_state)
+
+                    # Add this state's successors to the successor list.
+                    if (not successor_state.is_terminal_state()) : 
+                        for new_successor_state in successor_state.get_successors() :
+                            next_successor_states.append(new_successor_state)
+
+            current_successor_states = deepcopy(next_successor_states)
+        
+        # Create graph from state list.
+        interaction_graph = nx.DiGraph()
+        for state in states :
+            
+            # Add state to interaction graph.
+            interaction_graph.add_node(str(state))
+
+            for successor_state in state.get_successors() :
+                interaction_graph.add_node(str(successor_state))
+                interaction_graph.add_edge(str(state), str(successor_state))
+        
+        return interaction_graph

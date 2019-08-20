@@ -30,7 +30,7 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def step(self, action) -> Tuple[State, float, bool] :
+    def step(self, action) -> Tuple['State', float, bool] :
         """
         This method implements the one-step transition dynamics of the environment. Given an action,
         the environment transitions to some next state accordingly.
@@ -48,7 +48,7 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def reset(self) -> State :
+    def reset(self) -> 'State' :
         """
         This method initialises, or reinitialises, the environment prior to starting a new episode.
         It returns an initial state.
@@ -59,7 +59,7 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def get_available_options(self) -> List[option] :
+    def get_available_options(self) -> List['Option'] :
         """
         This method returns the options (primitive options + subgoal options) which are available to the
         agent in the current environmental state.
@@ -78,7 +78,7 @@ class BaseEnvironment(ABC) :
     Be sure to call the appropriate super-class methods when using this base class.
     """
 
-    def __init__(self, options : List[Option]) :
+    def __init__(self, options : List['Option']) :
         self.options = options
         self.current_state = None
 
@@ -93,9 +93,7 @@ class BaseEnvironment(ABC) :
     def get_available_options(self) :
         # Loops through every option and sees whether the
         # current state is in its initiation set.
-        available_options = []
-        for option in self.options :
-            if (option.initiation(self.current_state)) :
-                available_options.append(option)
+        
+        available_options = [option for option in self.options if option.initiation(self.current_state)]
         
         return available_options
