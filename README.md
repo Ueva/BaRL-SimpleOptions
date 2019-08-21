@@ -12,7 +12,7 @@ Download the repository and, in the root folder, run the command `sudo python se
 
 There is an intended workflow to using this framework, if you do not just want to try to slot it into your own existing code. Below, this intended workflow is described in a step-by-step manner.
 
-### Step 1: Implement Your Environment
+### Step 1: Implement The State Class
 
 The first step to using this framework involves defining the dynamics of your chosen reinforcement learning environment. This can be done by implementing the `State` abstract class. A number of method interfaces have been provided, and implementing them will allow you to use your environment with the rest of this framework. Some are optional, and so have not been marked as abstract methods, though you should think about whether implementing them might be useful for you.
 
@@ -20,7 +20,7 @@ The first step to using this framework involves defining the dynamics of your ch
 
 With your environment's state-transition dynamics defined in your implementation of the `State` class, you are now ready to create a graph of your reinforcement learning environment. This graph will encode states as nodes, and possible state-transitions as edges.
 
-BaRL-SimpleOptions makes use of the [NetworkX](https://networkx.github.io/) package for representing graphs. Creating the NetworkX `DiGraph` to represent the interaction graph of your environment can be easily achieved by recursively enumerating successors of states, starting with a small set of initial states. You may need to make use of methods such as `get_successors`, `get_available_actions`, take_action and `is_terminal_state` from your implementation of the `State` class.
+BaRL-SimpleOptions makes use of the [NetworkX](https://networkx.github.io/) package for representing graphs. By default, the `State` class provides the method `generate_interaction_graph` which recursively enumerates all states in the state-space for an implementation of `State`. The method it uses is a brute-force search starting froma  set of provided initial states - this makes it generalise to any environment, but also potentially makes it slow. You may be able to exploit domain knowledge in order to speed up the enumeration of states for your environment - if so, override this method. The method should return a NetworkX `DiGraph` representing the state-transition graph of your environment.
 
 ### Step 3: Generate Options
 
@@ -52,3 +52,7 @@ If you do not want to make use of our options class with your own agent and envi
 Our `Environment` and `BaseEnvironment` base classes are inspired by (and *may*, in the future, be integrated with) OpenAI Gym environments. Using functionality from you previously defined `State` implementation, you should be able to quite easily be able to implement an environment for an agent to interact with.
 
 Once you have defined your environment, you can run an agent using it by instantiating the `OptionAgent` class with your environment, and calling the `run_agent` method.
+
+## Example Implementation
+
+An complete end-to-end example implementation for a simple environment can be found [here](https://github.com/Ueva/BaRL-SimpleOptions/tree/master/example).

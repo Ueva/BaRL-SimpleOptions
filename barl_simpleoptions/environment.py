@@ -90,10 +90,10 @@ class BaseEnvironment(ABC) :
     def reset(self) :
         pass
 
-    def get_available_options(self) :
+    def get_available_options(self, state) :
         # Loops through every option and sees whether the
-        # current state is in its initiation set.
+        # given state is in its initiation set.
         
-        available_options = [option for option in self.options if option.initiation(self.current_state)]
+        available_options = [option for option in self.options if option.initiation(state)]
         
         return available_options

@@ -21,10 +21,10 @@ class State(ABC) :
     
     @abstractmethod
     def __str__(self) :
-        pass # Make sure that each state can be represented uniquely as a hashable string.
+        pass # Make sure that each state can be represented uniquely as string.
 
     def __repr__(self):
-        return str(self)
+        return str(self) # If you want a "pretty print" and "unamiguous" string representation, this can be used for the latter.
 
     @abstractmethod
     def __eq__(self, other_state : 'State'):
@@ -130,9 +130,16 @@ class State(ABC) :
         """
         pass
 
-    def generate_interaction_graph(self, initial_states : List["State"]) :
+    def generate_interaction_graph(self, initial_states : List["State"]) -> "DiGraph" :
         """
         Generates the state-transition graph for this environment.
+        
+        Arguments:
+            initial_states {List[State]} -- The states from which to start the enumeration of environmental states from. Normally,
+                                            this should be the initial states in the environment.
+
+        Returns:
+            DiGraph -- A networkx DiGraph representing the state transition graph for this environment.
         """
 
         states = []
