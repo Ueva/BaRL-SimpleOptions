@@ -7,19 +7,19 @@ class TwoRoomsEnvironment(BaseEnvironment) :
         super().__init__(options)
     
     def step(self, action) :
-        
         # Work out next state.
-        next_state = self.current_state.take_action(action)[0]
+        self.current_state = self.current_state.take_action(action)[0]
 
         # Work out reward - +10 if the goal is reached, -1 otherwise.
-        if (next_state.is_terminal_state()) :
+        if (self.current_state.is_terminal_state()) :
             reward = 10.0
             self.terminal = True
         else :
             reward = -1.0
 
-        return next_state, reward, self.terminal
+        return self.current_state, reward, self.terminal
 
     def reset(self) :
         self.current_state = TwoRoomsState((0,0))
         self.terminal = False
+        return self.current_state

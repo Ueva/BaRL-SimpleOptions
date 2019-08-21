@@ -54,9 +54,9 @@ class OptionAgent :
         
         # Fill an array with gamma^index
         gamma_exp = np.power(np.full(num_rewards, self.gamma), np.arange(1, 1 + num_rewards))
-        
+
         # Element-wise multiply and then sum array
-        discounted_sum_of_rewards = np.sum(np.multiply(rewards * gamma_exp))
+        discounted_sum_of_rewards = np.sum(np.multiply(rewards, gamma_exp))
 
         # Get Q-Values for Next State.
         q_values = [self.q_table.get((str(termination_state), str(o)), 0) for o in self.env.get_available_options(termination_state)]
@@ -170,7 +170,7 @@ class OptionAgent :
                 # Select action from option policy.
                 else :
                     option = self.select_action(state)
-                    action = option.policy(action)
+                    action = option.policy(state)
 
                 # Take action, observe reward, next state, terminal.
                 next_state, reward, terminal = self.env.step(action)
