@@ -1,12 +1,27 @@
+import networkx as nx
+
+#from barl_simpleoptions import State
 from barl_simpleoptions import State
 
 class TwoRoomsState(State) :
-    
+    """
+    This class represents a state in the simple "two rooms" gridworld problem.
+    The agent starts in the top-left cell, and needs to travel to the bottom-
+    left goal cell, moving North, South, East or West one tile each time step.
+
+    The gridworld is made up of two "rooms" divided by a wall with a single
+    cell "door" gap. This example is commonly used in the HRL literature, and
+    the door cell has been shown to be a useful subgoal found using many metrics
+    (e.g. it is a local maxima of betweenness on the state-transition graph).
+    """
+
     gridworld = [
             [0,0,0,1,0,0,0], # 0 is floor.
             [0,0,0,0,0,0,0], # 1 is wall.
             [0,0,0,1,0,0,0]  # Top-left (0,0) is initial state.
         ]                    # Bottom-right (2,6) is terminal goal state.
+
+    actions = ["N", "S", "W", "E"]
 
     def __init__(self, pos = (0,0)) :
         self.pos = pos
@@ -20,7 +35,12 @@ class TwoRoomsState(State) :
     def __eq__(self, other_state) :
         return self.pos == other_state.pos
 
-    def get_available_actions(self) :       
+    def get_available_actions(self) :            
+        
+        # No actions available from terminal state.
+        if (self.is_terminal_state()) :
+            return []
+        
         available_actions = []
         y, x = self.pos
         
@@ -87,3 +107,8 @@ class TwoRoomsState(State) :
     def get_successors(self) :
         action_successors = [self.take_action(action) for action in self.get_available_actions()]
         return  list(set().union(*action_successors))
+
+# Generate state-interaction graph and save to a file.
+initial_state = TwoRoomsState((0,0))
+state_transition_graph = initial_state.generate_interaction_graph([initial_state])
+nx.write_gexf(state_transition_graph, "sa_graph.gexf")

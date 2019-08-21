@@ -130,9 +130,16 @@ class State(ABC) :
         """
         pass
 
-    def generate_interaction_graph(self, initial_states : List["State"]) :
+    def generate_interaction_graph(self, initial_states : List["State"]) -> "DiGraph" :
         """
         Generates the state-transition graph for this environment.
+        
+        Arguments:
+            initial_states {List[State]} -- The states from which to start the enumeration of environmental states from. Normally,
+                                            this should be the initial states in the environment.
+
+        Returns:
+            DiGraph -- A networkx DiGraph representing the state transition graph for this environment.
         """
 
         states = []
