@@ -108,7 +108,7 @@ class TwoRoomsState(State) :
         action_successors = [self.take_action(action) for action in self.get_available_actions()]
         return  list(set().union(*action_successors))
 
-# Generate state-interaction graph and save to a file.
+# Generate state-interaction graph for this environment and save it to a file.
 initial_state = TwoRoomsState((0,0))
 state_transition_graph = initial_state.generate_interaction_graph([initial_state])
 nx.write_gexf(state_transition_graph, "sa_graph.gexf")
