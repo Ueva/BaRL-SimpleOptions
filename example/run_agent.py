@@ -1,4 +1,5 @@
 import networkx as nx
+import matplotlib.pyplot as plt
 
 from barl_simpleoptions import SubgoalOption
 from barl_simpleoptions import PrimitiveOption
@@ -52,7 +53,12 @@ agent = OptionAgent(env)
 #################
 
 # Run agent for 50 episodes.
-episode_returns = agent.run_agent(50)
+num_episodes = 50
+episode_returns = agent.run_agent(num_episodes)
 
-# Save pretty graphs.
-print(episode_returns)
+# Save Return Graph.
+plt.plot(range(1, num_episodes + 1), episode_returns)
+plt.title("Agent Training Curve")
+plt.xlabel("Episode Number")
+plt.ylabel("Episode Return")
+plt.savefig("episode_returns.png")
