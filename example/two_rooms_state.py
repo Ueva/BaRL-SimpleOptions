@@ -20,6 +20,7 @@ class TwoRoomsState(State) :
             [0,0,0,1,0,0,0]  # Top-left (0,0) is initial state.
         ]                    # Bottom-right (2,6) is terminal goal state.
 
+    # All of the possible actions - moving North, South, West or East.
     actions = ["N", "S", "W", "E"]
 
     def __init__(self, pos = (0,0)) :
@@ -105,4 +106,4 @@ class TwoRoomsState(State) :
 
     def get_successors(self) :
         action_successors = [self.take_action(action) for action in self.get_available_actions()]
-        return  list(set().union(*action_successors))
+        return list(set().union(*action_successors))
