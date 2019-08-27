@@ -59,10 +59,13 @@ class Environment(ABC) :
         pass
 
     @abstractmethod
-    def get_available_options(self) -> List['Option'] :
+    def get_available_options(self, state : "State") -> List['Option'] :
         """
         This method returns the options (primitive options + subgoal options) which are available to the
         agent in the current environmental state.
+
+        Arguments:
+            state {State} -- The state to return the available options for.
 
         Returns:
             List[Option] -- The list of options available in this state.
@@ -90,7 +93,7 @@ class BaseEnvironment(ABC) :
     def reset(self) :
         pass
 
-    def get_available_options(self, state) :
+    def get_available_options(self, state : "State") -> List['Option'] :
         # Loops through every option and sees whether the
         # given state is in its initiation set.
         
