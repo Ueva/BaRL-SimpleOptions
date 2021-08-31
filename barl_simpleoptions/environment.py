@@ -1,102 +1,141 @@
-import os
-import math
-import json
-import random
-import numpy as np
 import networkx as nx
 
-from typing import Tuple
 from typing import List
-
-from barl_simpleoptions.option import Option
-from barl_simpleoptions.option import PrimitiveOption
-from barl_simpleoptions.option import SubgoalOption
-from barl_simpleoptions.state import State
+from typing import Hashable, Tuple
 
 from abc import ABC, abstractmethod
 
-class Environment(ABC) :
+from barl_simpleoptions.option import Option
+
+
+class BaseEnvironment(ABC):
     """
     Abstract base class for environments, similar to OpenAI Gym environments.
     You should implement one-step dynamics for your environment, a "reset" function to
     initialise a the envionrment before starting an episode, and a function for returning
-    the available options to the agent.
-
-    It would be wise to make use of the methods that you have already defined in your implementation of
-    the State class for your environment.
+    the options available to the agent in a given state.
     """
 
-    def __init__(self) :
-        pass
+    def __init__(self, options: List["Option"] = []):
+        """
+        Constructs a new environment object.
+
+        Args:
+            options (List["Option"], optional): A set of options to initialise this environment with. Defaults to an empty list [].
+        """
+        self.options = options
+        self.current_state = None
 
     @abstractmethod
-    def step(self, action) -> Tuple['State', float, bool] :
+    def step(self, action: Hashable) -> Tuple[Hashable, float, bool, dict]:
         """
         This method implements the one-step transition dynamics of the environment. Given an action,
         the environment transitions to some next state accordingly.
-        
+
         Arguments:
-            action {Hashable} -- The action for the agent to take in the current environmental state.
+            action (Hashable) -- The action for the agent to take in the current environmental state.
 
         Returns:
-            State -- The next environmental state.
+            Hashable -- The next environmental state.
             float -- The reward earned by the agent by taking the given action in the current state.
             bool -- Whether or not the new state is terminal.
+            dict -- A dictionary containing information about the current episode.
 
-        next_state, reward, terminal -- ENSURE ORDER IS CORRECT!!!
+        next_state, reward, terminal, info -- ENSURE ORDER IS CORRECT!!!
         """
         pass
 
     @abstractmethod
-    def reset(self) -> 'State' :
+    def reset(self) -> Hashable:
         """
         This method initialises, or reinitialises, the environment prior to starting a new episode.
         It returns an initial state.
 
         Returns:
-            State -- An initial environmental state.
+            Hashable -- An initial environmental state.
         """
         pass
 
     @abstractmethod
-    def get_available_options(self, state : "State") -> List['Option'] :
+    def render(self, mode: str = "human") -> None:
+        """
+        Displays a representation of the environment's current state.
+
+        Args:
+            mode (str, optional): Optional, used to specify the rendering method for environments with multiple rendering modes.
+
+        Returns:
+            [type]: [description]
+        """
+        pass
+
+    @abstractmethod
+    def close(self):
+        """
+        Cleanly terminates all environment-related process (e.g. closing any renderers).
+        """
+
+    @abstractmethod
+    def get_available_actions(self, state: Hashable = None) -> List[Hashable]:
+        """
+        This method returns a list of primitive actions (NOT options) which are
+        available to the agent in this state.
+
+        Args:
+            state (Hashable): The state to return available primitve actions for. Defaults to None, and uses the current environmental state.
+
+        Returns:
+            List[Hashable]: The list of options available in this state.
+        """
+        pass
+
+    def get_available_options(self, state: Hashable) -> List["Option"]:
         """
         This method returns the options (primitive options + subgoal options) which are available to the
-        agent in the current environmental state.
+        agent in the given environmental state.
 
         Arguments:
-            state {State} -- The state to return the available options for.
+            state (Hashable) -- The state to return the available options for. Defaults to None, and uses the current environmental state.
 
         Returns:
             List[Option] -- The list of options available in this state.
         """
-        pass
+        if state is None:
+            state = self.current_state
 
-
-class BaseEnvironment(ABC) :
-    """
-    This abstract class implements a small amount of functionality which may be useful across many
-    different environments, specifically to do with the enumeration of available options.
-    
-    Be sure to call the appropriate super-class methods when using this base class.
-    """
-
-    def __init__(self, options : List['Option']) :
-        self.options = options
-        self.current_state = None
-
-    @abstractmethod
-    def step(self) :
-        pass
-
-    @abstractmethod
-    def reset(self) :
-        pass
-
-    def get_available_options(self, state : "State") -> List['Option'] :
-        # Loops through every option and sees whether the
-        # given state is in its initiation set.
-        
+        # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
         available_options = [option for option in self.options if option.initiation(state)]
-        
+
         return available_options
+
+    @abstractmethod
+    def is_state_terminal(self, state: Hashable = None) -> bool:
+        """
+        Returns whether the given state is terminal.
+
+        Args:
+            state (Hashable, optional): The state to check terminal status for. Defaults to None, and uses the current environmental state.
+
+        Returns:
+            bool: Whether the given state is terminal.
+        """
+        pass
+
+    @abstractmethod
+    def get_initial_states(self) -> List[Hashable]:
+        """
+        Gets a list of possible initial states for this environment.
+
+        Returns:
+            List[Hashable]: A list containing the possible initial states in this environment.
+        """
+        pass
+
+    @abstractmethod
+    def generate_interaction_graph(self) -> "nx.DiGraph":
+        """
+        Returns a NetworkX DiGraph representing the state-transition graph for this environment.
+
+        Returns:
+            nx.DiGraph: A NetworkX DiGraph representing the state-transition graph for this environment. Nodes are states, edges are possible transitions, edges weights are one.
+        """
