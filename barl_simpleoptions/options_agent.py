@@ -53,6 +53,10 @@ class OptionAgent:
             rewards (List[float]): The list of rewards earned each time-step while the Option was executing.
             option (Option): The option to perform an update for.
         """
+        state_trajectory = deepcopy(state_trajectory)
+        rewards = deepcopy(rewards)
+        option = deepcopy(option)
+
         termination_state = state_trajectory[-1]
 
         while len(state_trajectory) > 1:
@@ -93,6 +97,9 @@ class OptionAgent:
             rewards (List[float]): The list of rewards earned each time-step while the Option was executing.
             option (Option): The option that was executed.
         """
+        state_trajectory = deepcopy(state_trajectory)
+        rewards = deepcopy(rewards)
+        executed_option = deepcopy(executed_option)
 
         termination_state = state_trajectory[-1]
 

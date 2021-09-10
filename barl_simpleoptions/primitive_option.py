@@ -38,4 +38,4 @@ class PrimitiveOption(Option):
         return str(self)
 
     def __hash__(self):
-        return str(self)
+        return hash(str(self))
