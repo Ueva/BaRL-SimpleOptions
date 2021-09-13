@@ -2,8 +2,8 @@ import networkx as nx
 
 from typing import List
 from typing import Hashable, Tuple
-
 from abc import ABC, abstractmethod
+from copy import deepcopy
 
 from barl_simpleoptions.option import Option
 
@@ -106,7 +106,7 @@ class BaseEnvironment(ABC):
         # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
         available_options = [option for option in self.options if option.initiation(state)]
 
-        return available_options
+        return deepcopy(available_options)
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
@@ -139,3 +139,35 @@ class BaseEnvironment(ABC):
         Returns:
             nx.DiGraph: A NetworkX DiGraph representing the state-transition graph for this environment. Nodes are states, edges are possible transitions, edges weights are one.
         """
+
+        # Generates a list of all reachable states, starting the search from the environment's initial states.
+        states = []
+        current_successor_states = self.get_initial_states()
+
+        # Brute force construction of the state-transition graph. Starts with initial
+        # states, then tries to add possible successor states until no new successor states
+        # can be added. This can take quite a while for environments with a large state-space.
+        while not len(current_successor_states) == 0:
+            next_successor_states = []
+            for successor_state in current_successor_states:
+                if not successor_state in states:
+                    states.append(successor_state)
+
+                    if not self.is_state_terminal(successor_state):
+                        for new_successor_state in self.get_successors(successor_state):
+                            next_successor_states.append(new_successor_state)
+
+            current_successor_states = deepcopy(next_successor_states)
+
+        # Build state-transition graph.
+        stg = nx.Graph()
+        for state in states:
+            # Add node for state.
+            stg.add_node(state)
+
+            # Add directed edge between node and its successors.
+            for successor_state in self.get_successors(state):
+                stg.add_node(successor_state)
+                stg.add_edge(state, successor_state)
+
+        return stg
