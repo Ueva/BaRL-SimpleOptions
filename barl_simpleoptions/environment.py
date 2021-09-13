@@ -132,20 +132,20 @@ class BaseEnvironment(ABC):
         pass
 
     @abstractmethod
-    def get_successors(self, state: Hashable = None) -> List[Hashable]:
+    def get_successors(self, state: Hashable = None, actions: List[Hashable] = None) -> List[Hashable]:
         """
         Returns a list of states which can be reached by taking an action in the given state.
         If no state is specified, a list of successor states for the current state will be returned.
 
         Args:
             state (Hashable, optional): The state to return successors for. Defaults to None (i.e. current state).
+            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
 
         Returns:
             List[Hashable]: A list of states reachable by taking an action in the given state.
         """
         pass
 
-    @abstractmethod
     def generate_interaction_graph(self) -> "nx.DiGraph":
         """
         Returns a NetworkX DiGraph representing the state-transition graph for this environment.

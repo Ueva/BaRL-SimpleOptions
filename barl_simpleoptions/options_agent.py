@@ -31,7 +31,7 @@ class OptionAgent:
             epsilon {float} -- The chance of the agent taking a random action when following its base policy.
             alpha {float} -- The learning rate used in the Macro-Q Learning updates.
             alpha {float} -- The learning rate used in the Intra-Option Learning updates.
-            gamma {float} -- The environment's decay factor.
+            gamma {float} -- The environment's discount factor.
         """
 
         self.q_table = {}
