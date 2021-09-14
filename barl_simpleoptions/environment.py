@@ -74,18 +74,36 @@ class BaseEnvironment(ABC):
         """
         Cleanly terminates all environment-related process (e.g. closing any renderers).
         """
+        pass
+
+    @abstractmethod
+    def get_action_space(self) -> List[Hashable]:
+        """
+        Returns a list containing the set of primitive actions available in this environment. A subset of
+        the actions in this list will be available in each individual state.
+
+        Returns:
+            List[Hashable]: All possible primitive actions available in this environment.
+
+        See Also:
+            BaseEnvironment.get_available_actions
+        """
+        pass
 
     @abstractmethod
     def get_available_actions(self, state: Hashable = None) -> List[Hashable]:
         """
-        This method returns a list of primitive actions (NOT options) which are
-        available to the agent in this state.
+        This method returns a list of primitive actions (NOT options) which are available to
+        the agent in this state. Should return some subset of self.get_action_space().
 
         Args:
             state (Hashable): The state to return available primitve actions for. Defaults to None, and uses the current environmental state.
 
         Returns:
             List[Hashable]: The list of options available in this state.
+
+        See Also:
+            BaseEnvironment.get_action_space
         """
         pass
 

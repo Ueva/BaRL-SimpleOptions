@@ -76,7 +76,7 @@ class OptionAgent:
                 ]
             # Cater for terminal states (Q-value is zero).
             else:
-                q_values.append(0)
+                q_values = [0]
 
             # Perform Macro-Q Update
             self.q_table[(hash(initiation_state), hash(option))] = old_value + self.macro_q_alpha * (
@@ -118,17 +118,21 @@ class OptionAgent:
                     # Compute discounted sum of rewards.
                     discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
 
-                    # If the option terminates, we consider the value of the next best option.
-                    next_q_terminates = other_option.termination(termination_state) * max(
-                        [
-                            self.q_table.get((hash(termination_state), hash(o)), 0)
-                            for o in self.env.get_available_options(termination_state)
-                        ]
-                    )
-                    # If the option continues, we consider the value of the currently executing option.
-                    next_q_continues = (1 - other_option.termination(termination_state)) * self.q_table.get(
-                        (hash(termination_state), hash(other_option)), 0
-                    )
+                    if not self.env.is_state_terminal(termination_state):
+                        # If the option terminates, we consider the value of the next best option.
+                        next_q_terminates = other_option.termination(termination_state) * max(
+                            [
+                                self.q_table.get((hash(termination_state), hash(o)), 0)
+                                for o in self.env.get_available_options(termination_state)
+                            ]
+                        )
+                        # If the option continues, we consider the value of the currently executing option.
+                        next_q_continues = (1 - other_option.termination(termination_state)) * self.q_table.get(
+                            (hash(termination_state), hash(other_option)), 0
+                        )
+                    else:
+                        next_q_terminates = 0
+                        next_q_continues = 0
 
                     # Perform Intra-Option Update.
                     self.q_table[
@@ -171,18 +175,19 @@ class OptionAgent:
 
                 # Return the option with the highest Q-value, breaking ties randomly.
                 return available_options[
-                    random.choice(idx for idx, q_value in enumerate(q_values) if q_value == max(q_values))
+                    random.choice([idx for idx, q_value in enumerate(q_values) if q_value == max(q_values)])
                 ]
         # If we are currently following an option's policy, return what it selects.
         else:
             return self.executing_options[-1].policy(state)
 
-    def run_agent(self, num_episodes: int) -> List[float]:
+    def run_agent(self, num_episodes: int, render_interval: int = 0) -> List[float]:
         """
         Trains the agent for a given number of episodes.
 
         Args:
             num_episodes (int): The number of episodes to train the agent for.
+            num_episodes (int, optional): How often to call the environement's render function, in time-steps. Zero by default, disabling rendering.
 
         Returns:
             List[float]: A list containing floats representing
@@ -193,6 +198,10 @@ class OptionAgent:
             # Initialise initial state variables.
             state = self.env.reset()
             terminal = False
+
+            if render_interval > 0:
+                self.env.render()
+                time_since_last_render = 0
 
             while not terminal:
                 selected_option = self.select_action(state)
@@ -207,6 +216,12 @@ class OptionAgent:
                 else:
                     next_state, reward, terminal, __ = self.env.step(selected_option)
 
+                    # Render, if we need to.
+                    if render_interval > 0:
+                        time_since_last_render += 1
+                        if time_since_last_render > -render_interval:
+                            self.env.render()
+
                     state = deepcopy(next_state)
                     episode_rewards[episode].append(reward)
 
@@ -215,7 +230,7 @@ class OptionAgent:
                         self.executing_options_rewards[i].append(reward)
 
                     # Terminate any options which need terminating this time-step.
-                    while self._roll_termination(self.executing_options[-1], next_state):
+                    while self.executing_options and self._roll_termination(self.executing_options[-1], next_state):
                         # Perform a macro-q learning update for the terminating option.
                         self.macro_q_learn(
                             self.executing_options_states[-1],
