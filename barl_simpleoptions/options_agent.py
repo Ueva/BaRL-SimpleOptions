@@ -109,8 +109,10 @@ class OptionAgent:
 
             # We perform an intra-option update for all other options which select option in this state.
             for other_option in self.env.get_available_options(initiation_state):
-                if other_option.initiation(initiation_state) and hash(executed_option.policy(initiation_state)) == hash(
-                    executed_option
+                if (
+                    hash(other_option) != hash(executed_option)
+                    and other_option.initiation(initiation_state)
+                    and hash(executed_option.policy(initiation_state)) == hash(other_option.policy(initiation_state))
                 ):
 
                     old_value = self.q_table.get((hash(initiation_state), hash(other_option)), 0)
@@ -135,9 +137,7 @@ class OptionAgent:
                         next_q_continues = 0
 
                     # Perform Intra-Option Update.
-                    self.q_table[
-                        (hash(termination_state), hash(other_option))
-                    ] = old_value + self.intra_option_alpha * (
+                    self.q_table[(hash(initiation_state), hash(other_option))] = old_value + self.intra_option_alpha * (
                         discounted_sum_of_rewards
                         + math.pow(self.gamma, len(rewards)) * (next_q_continues + next_q_terminates)
                         - old_value
