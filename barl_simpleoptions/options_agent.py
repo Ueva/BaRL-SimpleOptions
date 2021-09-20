@@ -87,15 +87,20 @@ class OptionAgent:
             rewards.pop(0)
 
     def intra_option_learn(
-        self, state_trajectory: List[Hashable], rewards: List[float], executed_option: "Option"
+        self,
+        state_trajectory: List[Hashable],
+        rewards: List[float],
+        executed_option: Option,
+        higher_level_option: Union["Option", None] = None,
     ) -> None:
         """
         Performs Intra-Option Learning updates along the given trajectory for the given Option.
 
         Args:
             state_trajectory (List[Hashable]): The list of states visited each time-step while the option was executing.
-            rewards (List[float]): The list of rewards earned each time-step while the Option was executing.
-            option (Option): The option that was executed.
+            rewards (List[float]): The list of rewards earned each time-step while the option was executing.
+            executed_option (Option): The option that was executed.
+            higher_level_option (Union[None, optional): The option whose policy chose the executed_option. Defaults to None, indicating that the option was executed under the base policy.
         """
         state_trajectory = deepcopy(state_trajectory)
         rewards = deepcopy(rewards)
@@ -107,12 +112,12 @@ class OptionAgent:
             num_rewards = len(rewards)
             initiation_state = state_trajectory[0]
 
-            # We perform an intra-option update for all other options which select option in this state.
+            # We perform an intra-option update for all other options which select executed_option in this state.
             for other_option in self.env.get_available_options(initiation_state):
                 if (
-                    hash(other_option) != hash(executed_option)
+                    (hash(other_option) != hash(higher_level_option) or higher_level_option is None)
                     and other_option.initiation(initiation_state)
-                    and hash(executed_option.policy(initiation_state)) == hash(other_option.policy(initiation_state))
+                    and hash(other_option.policy(initiation_state)) == hash(executed_option)
                 ):
 
                     old_value = self.q_table.get((hash(initiation_state), hash(other_option)), 0)
@@ -219,8 +224,9 @@ class OptionAgent:
                     # Render, if we need to.
                     if render_interval > 0:
                         time_since_last_render += 1
-                        if time_since_last_render > -render_interval:
+                        if time_since_last_render >= render_interval:
                             self.env.render()
+                            time_since_last_render = 0
 
                     state = deepcopy(next_state)
                     episode_rewards[episode].append(reward)
@@ -242,6 +248,7 @@ class OptionAgent:
                             self.executing_options_states[-1],
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
+                            self.executing_options[-2] if len(self.executing_options) > 1 else None,
                         )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
@@ -261,6 +268,7 @@ class OptionAgent:
                             self.executing_options_states[-1],
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
+                            self.executing_options[-2] if len(self.executing_options) > 1 else None,
                         )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
