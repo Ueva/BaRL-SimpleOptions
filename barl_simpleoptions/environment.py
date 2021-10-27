@@ -121,10 +121,14 @@ class BaseEnvironment(ABC):
         if state is None:
             state = self.current_state
 
-        # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
-        available_options = [option for option in self.options if option.initiation(state)]
-
-        return deepcopy(available_options)
+        # By definition, no options are available in the terminal state.
+        if self.is_state_terminal(state):
+            return deepcopy([])
+        # Otherwise, options whose initiation set contains the given state are returned.
+        else:
+            # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
+            available_options = [option for option in self.options if option.initiation(state)]
+            return deepcopy(available_options)
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
@@ -164,7 +168,7 @@ class BaseEnvironment(ABC):
         """
         pass
 
-    def generate_interaction_graph(self) -> "nx.DiGraph":
+    def generate_interaction_graph(self, directed=False) -> "nx.DiGraph":
         """
         Returns a NetworkX DiGraph representing the state-transition graph for this environment.
 
@@ -192,7 +196,10 @@ class BaseEnvironment(ABC):
             current_successor_states = deepcopy(next_successor_states)
 
         # Build state-transition graph.
-        stg = nx.Graph()
+        if directed:
+            stg = nx.DiGraph()
+        else:
+            stg = nx.Graph()
         for state in states:
             # Add node for state.
             stg.add_node(state)
