@@ -74,8 +74,8 @@ def test_one_step_intra_option_update_1():
     # First, perform a macro-q update for option_1. Then, perform an intra-option update for
     # option_1. This should result in both option_1 and option_2 having the same q-value in
     # state_1, since they both execute the same primitive action, and should both get updated once.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option_1)
-    agent.intra_option_learn(state_trajectory, reward_trajectory, lower_level_option, option_1)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option_1, n_step=True)
+    agent.intra_option_learn(state_trajectory, reward_trajectory, lower_level_option, option_1, n_step=True)
 
     # Ensure that the q-values for executing option_1 in state_1 and executing option_2 in state_1 are the same.
     assert agent.q_table[(hash("state_1"), hash(option_1))] == agent.q_table[(hash("state_1"), hash(option_2))]
@@ -106,8 +106,8 @@ def test_one_step_intra_option_update_2():
     # option_1. This should result in option_1 having its q-values updated once (during the
     # macro-q update), but option_2 should not be updated during the intra-option update because
     # its policy is different to option_1's.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option_1)
-    agent.intra_option_learn(state_trajectory, reward_trajectory, lower_level_option_1, option_1)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option_1, n_step=True)
+    agent.intra_option_learn(state_trajectory, reward_trajectory, lower_level_option_1, option_1, n_step=True)
 
     # Ensure that the q-value of executing option_1 in state_1 is updated, and that the
     # q-value of executing option_2 in state_1 remains at 0.0.

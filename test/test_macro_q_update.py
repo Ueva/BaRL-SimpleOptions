@@ -63,7 +63,7 @@ def test_one_step_macro_q_update_1():
 
     # Perform a macro-q learning update for our test option over a single time-step, where a reward of
     # 1 was earned after transitioning from state_1 to state_2.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     # Ensure that the new value of initating our test option in state_1 is correct after performing the update.
     # Our dummy environment returns a list containing the primitive action 1 as the available action in state_2,
@@ -94,7 +94,7 @@ def test_one_step_macro_q_update_2():
 
     # Perform a macro-q learning update for our test option over a single time-step, where a reward of
     # 1 was earned after transitioning from state_1 to state_2.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[0] + gamma * initial_values["state_2, 1"] - initial_values["state_1, option"]
@@ -117,7 +117,7 @@ def test_three_step_macro_q_update_1():
     # Perform a macro-q learning update for our test option over three time-steps, as the option
     # executes and causes our agent to navigate between the states in state_trajectory and earn
     # the rewards in reward_trajectory.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
     assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
@@ -165,7 +165,7 @@ def test_three_step_macro_q_update_2():
     # Perform a macro-q learning update for our test option over three time-steps, as the option
     # executes and causes our agent to navigate between the states in state_trajectory and earn
     # the rewards in reward_trajectory.
-    agent.macro_q_learn(state_trajectory, reward_trajectory, option)
+    agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
     assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
