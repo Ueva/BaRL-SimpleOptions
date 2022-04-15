@@ -23,7 +23,7 @@ class BaseEnvironment(ABC):
         Args:
             options (List["Option"], optional): A set of options to initialise this environment with. Defaults to an empty list [].
         """
-        self.options = options
+        self.options = deepcopy(options)
         self.current_state = None
 
     @abstractmethod
