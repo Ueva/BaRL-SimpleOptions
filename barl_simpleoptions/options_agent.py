@@ -24,6 +24,7 @@ class OptionAgent:
         intra_option_alpha: float = 0.2,
         gamma: float = 0.9,
         default_action_value=0.0,
+        n_step_updates=False,
     ):
         """
         Constructs a new OptionAgent object.
@@ -35,6 +36,7 @@ class OptionAgent:
             alpha {float} -- The learning rate used in the Intra-Option Learning updates.
             gamma {float} -- The environment's discount factor.
             default_action_value {float} -- The value to initialise all action-values to. Defaults to 0.0.
+            n_step_updates {bool} -- Whether to perform n-step updates (not guaranteed to be consistent at this time). Defaults to False.
         """
 
         self.q_table = defaultdict(lambda: default_action_value)
@@ -46,6 +48,7 @@ class OptionAgent:
         self.executing_options = []
         self.executing_options_states = []
         self.executing_options_rewards = []
+        self.n_step_updates = n_step_updates
 
     def macro_q_learn(
         self, state_trajectory: List[Hashable], rewards: List[float], option: "Option", n_step=False
@@ -259,6 +262,7 @@ class OptionAgent:
                             self.executing_options_states[-1],
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
+                            self.n_step_updates,
                         )
                         # Perform an intra-option learning update for the terminating option.
                         self.intra_option_learn(
@@ -266,6 +270,7 @@ class OptionAgent:
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
                             self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                            self.n_step_updates,
                         )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
@@ -279,6 +284,7 @@ class OptionAgent:
                             self.executing_options_states[-1],
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
+                            self.n_step_updates,
                         )
                         # Perform an intra-option learning update for the topmost option.
                         self.intra_option_learn(
@@ -286,6 +292,7 @@ class OptionAgent:
                             self.executing_options_rewards[-1],
                             self.executing_options[-1],
                             self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                            self.n_step_updates,
                         )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
