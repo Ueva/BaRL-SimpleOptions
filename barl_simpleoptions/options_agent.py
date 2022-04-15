@@ -3,6 +3,7 @@ import random
 import numpy as np
 
 from copy import deepcopy
+from collections import defaultdict
 from typing import Hashable, List, Union
 
 from barl_simpleoptions.option import Option
@@ -22,6 +23,7 @@ class OptionAgent:
         macro_alpha: float = 0.2,
         intra_option_alpha: float = 0.2,
         gamma: float = 0.9,
+        default_action_value=0.0,
     ):
         """
         Constructs a new OptionAgent object.
@@ -32,9 +34,10 @@ class OptionAgent:
             alpha {float} -- The learning rate used in the Macro-Q Learning updates.
             alpha {float} -- The learning rate used in the Intra-Option Learning updates.
             gamma {float} -- The environment's discount factor.
+            default_action_value {float} -- The value to initialise all action-values to. Defaults to 0.0.
         """
 
-        self.q_table = {}
+        self.q_table = defaultdict(lambda: default_action_value)
         self.env = env
         self.epsilon = epsilon
         self.gamma = gamma
@@ -66,7 +69,7 @@ class OptionAgent:
             num_rewards = len(rewards)
             initiation_state = state_trajectory[0]
 
-            old_value = self.q_table.get((hash(initiation_state), hash(option)), 0)
+            old_value = self.q_table[(hash(initiation_state), hash(option))]
 
             # Compute discounted sum of rewards.
             discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
@@ -74,7 +77,7 @@ class OptionAgent:
             # Get Q-Values for Next State.
             if not self.env.is_state_terminal(termination_state):
                 q_values = [
-                    self.q_table.get((hash(termination_state), hash(o)), 0)
+                    self.q_table[(hash(termination_state), hash(o))]
                     for o in self.env.get_available_options(termination_state)
                 ]
             # Cater for terminal states (Q-value is zero).
@@ -129,7 +132,7 @@ class OptionAgent:
                     and hash(other_option.policy(initiation_state)) == hash(executed_option)
                 ):
 
-                    old_value = self.q_table.get((hash(initiation_state), hash(other_option)), 0)
+                    old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
                     discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
@@ -138,14 +141,15 @@ class OptionAgent:
                         # If the option terminates, we consider the value of the next best option.
                         next_q_terminates = other_option.termination(termination_state) * max(
                             [
-                                self.q_table.get((hash(termination_state), hash(o)), 0)
+                                self.q_table[(hash(termination_state), hash(o))]
                                 for o in self.env.get_available_options(termination_state)
                             ]
                         )
                         # If the option continues, we consider the value of the currently executing option.
-                        next_q_continues = (1 - other_option.termination(termination_state)) * self.q_table.get(
-                            (hash(termination_state), hash(other_option)), 0
-                        )
+                        next_q_continues = (1 - other_option.termination(termination_state)) * self.q_table[
+                            (hash(termination_state), hash(other_option))
+                        ]
+
                     else:
                         next_q_terminates = 0
                         next_q_continues = 0
@@ -189,7 +193,7 @@ class OptionAgent:
             # Best Action.
             else:
                 # Find Q-values of available options.
-                q_values = [self.q_table.get((hash(state), hash(o)), 0) for o in available_options]
+                q_values = [self.q_table[(hash(state), hash(o))] for o in available_options]
 
                 # Return the option with the highest Q-value, breaking ties randomly.
                 return available_options[
