@@ -44,7 +44,9 @@ class OptionAgent:
         self.executing_options_states = []
         self.executing_options_rewards = []
 
-    def macro_q_learn(self, state_trajectory: List[Hashable], rewards: List[float], option: "Option") -> None:
+    def macro_q_learn(
+        self, state_trajectory: List[Hashable], rewards: List[float], option: "Option", n_step=False
+    ) -> None:
         """
         Performs Macro Q-Learning updates along the given trajectory for the given Option.
 
@@ -52,6 +54,7 @@ class OptionAgent:
             state_trajectory (List[Hashable]): The list of states visited each time-step while the option was executing.
             rewards (List[float]): The list of rewards earned each time-step while the Option was executing.
             option (Option): The option to perform an update for.
+            n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
         state_trajectory = deepcopy(state_trajectory)
         rewards = deepcopy(rewards)
@@ -86,12 +89,17 @@ class OptionAgent:
             state_trajectory.pop(0)
             rewards.pop(0)
 
+            # If we're not performing n-step updates, exit after the first iteration.
+            if not n_step:
+                break
+
     def intra_option_learn(
         self,
         state_trajectory: List[Hashable],
         rewards: List[float],
         executed_option: Option,
         higher_level_option: Union["Option", None] = None,
+        n_step=False,
     ) -> None:
         """
         Performs Intra-Option Learning updates along the given trajectory for the given Option.
@@ -101,6 +109,7 @@ class OptionAgent:
             rewards (List[float]): The list of rewards earned each time-step while the option was executing.
             executed_option (Option): The option that was executed.
             higher_level_option (Union[None, optional): The option whose policy chose the executed_option. Defaults to None, indicating that the option was executed under the base policy.
+            n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
         state_trajectory = deepcopy(state_trajectory)
         rewards = deepcopy(rewards)
@@ -150,6 +159,10 @@ class OptionAgent:
 
             state_trajectory.pop(0)
             rewards.pop(0)
+
+            # If we're not performing n-step updates, exit after the first iteration.
+            if not n_step:
+                break
 
     def select_action(self, state: Hashable) -> Union[Option, Hashable, None]:
         """
