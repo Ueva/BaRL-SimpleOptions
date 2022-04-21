@@ -1,8 +1,10 @@
+import gc
 import math
 import random
 import numpy as np
 
-from copy import deepcopy
+from tqdm import tqdm
+from copy import copy, deepcopy
 from collections import defaultdict
 from typing import Hashable, List, Union
 
@@ -64,7 +66,7 @@ class OptionAgent:
         """
         state_trajectory = deepcopy(state_trajectory)
         rewards = deepcopy(rewards)
-        option = deepcopy(option)
+        option = option
 
         termination_state = state_trajectory[-1]
 
@@ -119,7 +121,7 @@ class OptionAgent:
         """
         state_trajectory = deepcopy(state_trajectory)
         rewards = deepcopy(rewards)
-        executed_option = deepcopy(executed_option)
+        executed_option = executed_option
 
         termination_state = state_trajectory[-1]
 
@@ -219,7 +221,7 @@ class OptionAgent:
         """
         episode_rewards = [[] for __ in range(num_episodes)]
 
-        for episode in range(num_episodes):
+        for episode in tqdm(range(num_episodes)):
             # Initialise initial state variables.
             state = self.env.reset()
             terminal = False
@@ -233,7 +235,7 @@ class OptionAgent:
 
                 # Handle if the selected option is a higher-level option.
                 if isinstance(selected_option, Option):
-                    self.executing_options.append(deepcopy(selected_option))
+                    self.executing_options.append(copy(selected_option))
                     self.executing_options_states.append([deepcopy(state)])
                     self.executing_options_rewards.append([])
 
@@ -297,6 +299,9 @@ class OptionAgent:
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
+
+            gc.collect()
+
         return episode_rewards
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:

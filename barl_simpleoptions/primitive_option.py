@@ -32,7 +32,7 @@ class PrimitiveOption(Option):
         return True
 
     def __str__(self):
-        return "PrimitiveOption({})".format(hash(self.action))
+        return f"PrimitiveOption({hash(self.action)})"
 
     def __repr__(self):
         return str(self)

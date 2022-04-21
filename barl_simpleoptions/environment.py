@@ -123,12 +123,12 @@ class BaseEnvironment(ABC):
 
         # By definition, no options are available in the terminal state.
         if self.is_state_terminal(state):
-            return deepcopy([])
+            return []
         # Otherwise, options whose initiation set contains the given state are returned.
         else:
             # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
             available_options = [option for option in self.options if option.initiation(state)]
-            return deepcopy(available_options)
+            return available_options
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
