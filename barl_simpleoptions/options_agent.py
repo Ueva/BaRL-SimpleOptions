@@ -214,7 +214,7 @@ class OptionAgent:
 
         Args:
             num_episodes (int): The number of episodes to train the agent for.
-            num_episodes (int, optional): How often to call the environement's render function, in time-steps. Zero by default, disabling rendering.
+            render_interval (int, optional): How often to call the environement's render function, in time-steps. Zero by default, disabling rendering.
 
         Returns:
             List[float]: A list containing floats representing
