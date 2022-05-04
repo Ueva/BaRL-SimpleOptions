@@ -24,7 +24,7 @@ class OptionAgent:
         epsilon: float = 0.15,
         macro_alpha: float = 0.2,
         intra_option_alpha: float = 0.2,
-        gamma: float = 0.9,
+        gamma: float = 1.0,
         default_action_value=0.0,
         n_step_updates=False,
     ):
@@ -33,10 +33,10 @@ class OptionAgent:
 
         Arguments:
             env {Environment} -- The environment for the agent to act in.
-            epsilon {float} -- The chance of the agent taking a random action when following its base policy.
-            alpha {float} -- The learning rate used in the Macro-Q Learning updates.
-            alpha {float} -- The learning rate used in the Intra-Option Learning updates.
-            gamma {float} -- The environment's discount factor.
+            epsilon {float} -- The chance of the agent taking a random action when following its base policy. Defaults to 0.15.
+            alpha {float} -- The learning rate used in the Macro-Q Learning updates. Defaults to 0.2.
+            alpha {float} -- The learning rate used in the Intra-Option Learning updates. Deafults to 0.2.
+            gamma {float} -- The environment's discount factor. Defaults to 1.0.
             default_action_value {float} -- The value to initialise all action-values to. Defaults to 0.0.
             n_step_updates {bool} -- Whether to perform n-step updates (not guaranteed to be consistent at this time). Defaults to False.
         """
