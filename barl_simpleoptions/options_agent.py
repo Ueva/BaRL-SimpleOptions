@@ -3,7 +3,6 @@ import math
 import random
 import numpy as np
 
-from tqdm import tqdm
 from copy import copy, deepcopy
 from collections import defaultdict
 from typing import Hashable, List, Union
@@ -208,20 +207,26 @@ class OptionAgent:
         else:
             return self.executing_options[-1].policy(state)
 
-    def run_agent(self, num_episodes: int, render_interval: int = 0) -> List[float]:
+    def run_agent(self, num_episodes: int = 100, num_time_steps: int = 0, render_interval: int = 0) -> List[float]:
         """
         Trains the agent for a given number of episodes.
 
         Args:
-            num_episodes (int): The number of episodes to train the agent for.
+            num_episodes (int): The number of episodes to train the agent for. Defaults to 100. Ignored if num_time_steps is specified.
+            num_time_steps (int): The minimum number of time-steps to train the agent for. Defaults to 0.
             render_interval (int, optional): How often to call the environement's render function, in time-steps. Zero by default, disabling rendering.
 
         Returns:
-            List[float]: A list containing floats representing
+            List[float]: A list containing floats representing the rewards earned by the agent each time-step.
         """
-        episode_rewards = [[] for __ in range(num_episodes)]
+        episode_rewards = []
 
-        for episode in tqdm(range(num_episodes)):
+        episode = 0
+        time_steps = 0
+
+        while (episode < num_episodes and num_time_steps <= 0) or (time_steps < num_time_steps and num_time_steps > 0):
+            episode_rewards.append([])
+
             # Initialise initial state variables.
             state = self.env.reset()
             terminal = False
@@ -241,6 +246,7 @@ class OptionAgent:
 
                 # Handle if the selected option is a primitive action.
                 else:
+                    time_steps += 1
                     next_state, reward, terminal, __ = self.env.step(selected_option)
 
                     # Render, if we need to.
@@ -300,7 +306,8 @@ class OptionAgent:
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
 
-            gc.collect()
+            episode += 1
+        gc.collect()
 
         return episode_rewards
 
