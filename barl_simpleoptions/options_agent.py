@@ -306,6 +306,10 @@ class OptionAgent:
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
 
+                # If we have been training for more than the desired number of time-steps, terminate.
+                if (time_steps > num_time_steps) and (num_time_steps > 0):
+                    break
+
             episode += 1
         gc.collect()
 
