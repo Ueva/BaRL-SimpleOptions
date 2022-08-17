@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-SimpleOptions",
     packages=setuptools.find_packages(exclude=("example", "test")),
-    install_requires=["numpy", "networkx", "gym"],
+    install_requires=["numpy", "networkx"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
