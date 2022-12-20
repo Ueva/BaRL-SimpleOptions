@@ -1,12 +1,20 @@
 # BaRL-SimpleOptions
 
-A small Python package which provides a simple framework to guide the use of options in reinforcement learning projects. Less of a plug-and-play repository, this code is intended to act as a basis to start your own work off of.
-At the moment, the project is in its infancy, having been extracted and generalised from code used in a previous research project.
-Extensions, including direct integration with OpenAI Gym-like environments, are planned.
+This Python package aims to provide a simple framework for implementing and using options in Hierarchical Reinforcement Learning (HRL) projects.
+
+Key classes:
+
+- `Option`: An abstract class representing an option with an initiation set, option policy, and termination condition.
+- `BaseEnvironment`: A class representing an HRL agent's environment. The environment specification is based on the OpenAI Gym `Env` specifciation, but does not implement it directly. It supports both primitive actions and options, as well as functionality for consttructing State-Transition Graphs (STGs) out-of-the-box using NetworkX.
+- `OptionAgent`: A class representing an HRL agent, which can interact with its environment and has access to a number of options. It includes implementations of Macro-Q Learning and Intra-Option learning, with many customisable features.
+
+This code was written with tabular, particualrly graph-based, HRL methods in mind. It's less of a plug-and-play repository, and is intended to be used to as a basic framework for developing your own Option and Environment implementations.
 
 ## How to Install
 
-Download the repository and, in the root folder, run the command `sudo python setup.py install`.
+Download the repository and, in the root directory, run the command `pip install .`
+
+Support for installation using PyPI is planned.
 
 ## How to Use This Code
 
