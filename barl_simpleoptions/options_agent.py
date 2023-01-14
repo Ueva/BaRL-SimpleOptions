@@ -67,6 +67,21 @@ class OptionAgent:
         rewards = deepcopy(rewards)
         option = option
 
+        # For Debuging - saves info about long-running options to a file.
+        if (len(state_trajectory) > 500) and hasattr(option, "hierarchy_level"):
+            with open("long_running_options.txt", "a+") as f:
+                # Write the ID of the option and how long it executed for.
+                f.write(
+                    f"Option {option.hierarchy_level}-{option.source_cluster}->{option.target_cluster} ran for {len(state_trajectory)} decision stages.\n"
+                )
+                # Write the q-values in the state it got stuck in.
+                most_common_state = max(set(state_trajectory), key=state_trajectory.count)
+                q_values = {
+                    str(o): option.q_table.get((hash(most_common_state), hash(o)), 0)
+                    for o in self.env.get_available_options(most_common_state)
+                }
+                f.write(f"State Stuck: {most_common_state}\tQ-Values: {q_values}\n\n")
+
         termination_state = state_trajectory[-1]
 
         while len(state_trajectory) > 1:
@@ -284,6 +299,10 @@ class OptionAgent:
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
 
+                # If we have been training for more than the desired number of time-steps, terminate.
+                if (time_steps > num_time_steps) and (num_time_steps > 0):
+                    terminal = True
+
                 # Handle if the current state is terminal.
                 if terminal:
                     while len(self.executing_options) > 0:
@@ -305,10 +324,6 @@ class OptionAgent:
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
-
-                # If we have been training for more than the desired number of time-steps, terminate.
-                if (time_steps > num_time_steps) and (num_time_steps > 0):
-                    break
 
             episode += 1
         gc.collect()

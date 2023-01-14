@@ -62,7 +62,7 @@ def test_one_step_intra_option_update_1():
     alpha = 0.2
     gamma = 0.9
 
-    # Define two dummy options which execute the same lower-level option.
+    # Define two dummy options which execute the SAME lower-level option.
     # If we perform an intra-option update for one of them, the other should get updated.
     lower_level_option = DummyOption("lower_level_option", 1, "state_2")
     option_1 = DummyOption("test_option_1", lower_level_option, "state_2")
