@@ -39,3 +39,12 @@ class PrimitiveOption(Option):
 
     def __hash__(self):
         return hash(str(self))
+
+    def __eq__(self, other_option):
+        if isinstance(other_option, PrimitiveOption):
+            return other_option.action == self.action
+        else:
+            return False
+
+    def __ne__(self, other_option):
+        return not self == other_option
