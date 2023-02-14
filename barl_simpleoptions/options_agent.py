@@ -81,6 +81,7 @@ class OptionAgent:
                     for o in self.env.get_available_options(most_common_state)
                 }
                 f.write(f"State Stuck: {most_common_state}\tQ-Values: {q_values}\n\n")
+                quit()
 
         termination_state = state_trajectory[-1]
 
