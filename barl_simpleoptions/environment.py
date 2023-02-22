@@ -16,14 +16,12 @@ class BaseEnvironment(ABC):
     the options available to the agent in a given state.
     """
 
-    def __init__(self, options: List["Option"] = []):
+    def __init__(self):
         """
         Constructs a new environment object.
-
-        Args:
-            options (List["Option"], optional): A set of options to initialise this environment with. Defaults to an empty list [].
         """
-        self.options = deepcopy(options)
+        self.options = []
+        self.exploration_options = []
         self.current_state = None
 
     @abstractmethod
@@ -107,13 +105,14 @@ class BaseEnvironment(ABC):
         """
         pass
 
-    def get_available_options(self, state: Hashable) -> List["Option"]:
+    def get_available_options(self, state: Hashable, exploration=False) -> List["Option"]:
         """
         This method returns the options (primitive options + subgoal options) which are available to the
         agent in the given environmental state.
 
         Arguments:
             state (Hashable) -- The state to return the available options for. Defaults to None, and uses the current environmental state.
+            exploration (bool) -- Whether to include options that are only available for exploration.
 
         Returns:
             List[Option] -- The list of options available in this state.
@@ -128,7 +127,39 @@ class BaseEnvironment(ABC):
         else:
             # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
             available_options = [option for option in self.options if option.initiation(state)]
+
+            if exploration:
+                available_options.extend([option for option in self.exploration_options if option.initiation(state)])
+
             return available_options
+
+    def set_options(self, new_options: List["Option"], append: bool = False) -> None:
+        """
+        Sets the set of options available in this environment.
+        By default, replaces the current list of available options. If you wish to extend the
+        list of currently avaialble options, set the `append` parameter to `True`.
+        Args:
+            new_options (List[BaseOption]): The list of options to make avaialble.
+            append (bool, optional): Whether to append the new options to the current set of options. Defaults to False.
+        """
+        if not append:
+            self.options = deepcopy(new_options)
+        else:
+            self.options.extend(deepcopy(new_options))
+
+    def set_exploration_options(self, new_options: List["Option"], append: bool = False) -> None:
+        """
+        Sets the set of options available solely for exploration in this environment.
+        By default, replaces the current list of available options. If you wish to extend the
+        list of currently avaialble options, set the `append` parameter to `True`.
+        Args:
+            new_options (List[BaseOption]): The list of options to make avaialble.
+            append (bool, optional): Whether to append the new options to the current set of exploration options. Defaults to False.
+        """
+        if not append:
+            self.exploration_options = deepcopy(new_options)
+        else:
+            self.exploration_options.extend(deepcopy(new_options))
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
