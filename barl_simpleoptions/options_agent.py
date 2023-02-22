@@ -151,7 +151,6 @@ class OptionAgent:
                     and other_option.initiation(initiation_state)
                     and hash(other_option.policy(initiation_state)) == hash(executed_option)
                 ):
-
                     old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
@@ -205,13 +204,13 @@ class OptionAgent:
         # If we do not currently have any options executing, we act according to the agent's
         # base epsilon-greedy policy over the set of currently available options.
         if len(self.executing_options) == 0:
-            available_options = self.env.get_available_options(state)
-
             # Random Action.
             if random.random() < self.epsilon:
+                available_options = self.env.get_available_options(state, exploration=True)
                 return random.choice(available_options)
             # Best Action.
             else:
+                available_options = self.env.get_available_options(state, exploration=False)
                 # Find Q-values of available options.
                 q_values = [self.q_table[(hash(state), hash(o))] for o in available_options]
 
@@ -281,21 +280,22 @@ class OptionAgent:
 
                     # Terminate any options which need terminating this time-step.
                     while self.executing_options and self._roll_termination(self.executing_options[-1], next_state):
-                        # Perform a macro-q learning update for the terminating option.
-                        self.macro_q_learn(
-                            self.executing_options_states[-1],
-                            self.executing_options_rewards[-1],
-                            self.executing_options[-1],
-                            self.n_step_updates,
-                        )
-                        # Perform an intra-option learning update for the terminating option.
-                        self.intra_option_learn(
-                            self.executing_options_states[-1],
-                            self.executing_options_rewards[-1],
-                            self.executing_options[-1],
-                            self.executing_options[-2] if len(self.executing_options) > 1 else None,
-                            self.n_step_updates,
-                        )
+                        if self.executing_options[-1] not in self.env.exploration_options:
+                            # Perform a macro-q learning update for the terminating option.
+                            self.macro_q_learn(
+                                self.executing_options_states[-1],
+                                self.executing_options_rewards[-1],
+                                self.executing_options[-1],
+                                self.n_step_updates,
+                            )
+                            # Perform an intra-option learning update for the terminating option.
+                            self.intra_option_learn(
+                                self.executing_options_states[-1],
+                                self.executing_options_rewards[-1],
+                                self.executing_options[-1],
+                                self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                                self.n_step_updates,
+                            )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
@@ -307,21 +307,22 @@ class OptionAgent:
                 # Handle if the current state is terminal.
                 if terminal:
                     while len(self.executing_options) > 0:
-                        # Perform a macro-q learning update for the topmost option.
-                        self.macro_q_learn(
-                            self.executing_options_states[-1],
-                            self.executing_options_rewards[-1],
-                            self.executing_options[-1],
-                            self.n_step_updates,
-                        )
-                        # Perform an intra-option learning update for the topmost option.
-                        self.intra_option_learn(
-                            self.executing_options_states[-1],
-                            self.executing_options_rewards[-1],
-                            self.executing_options[-1],
-                            self.executing_options[-2] if len(self.executing_options) > 1 else None,
-                            self.n_step_updates,
-                        )
+                        if self.executing_options[-1] not in self.env.exploration_options:
+                            # Perform a macro-q learning update for the topmost option.
+                            self.macro_q_learn(
+                                self.executing_options_states[-1],
+                                self.executing_options_rewards[-1],
+                                self.executing_options[-1],
+                                self.n_step_updates,
+                            )
+                            # Perform an intra-option learning update for the topmost option.
+                            self.intra_option_learn(
+                                self.executing_options_states[-1],
+                                self.executing_options_rewards[-1],
+                                self.executing_options[-1],
+                                self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                                self.n_step_updates,
+                            )
                         self.executing_options_states.pop()
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
