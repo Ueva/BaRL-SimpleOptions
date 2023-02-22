@@ -1,9 +1,9 @@
+import copy
 import networkx as nx
 
 from typing import List
 from typing import Hashable, Tuple
 from abc import ABC, abstractmethod
-from copy import deepcopy
 
 from barl_simpleoptions.option import Option
 
@@ -143,9 +143,9 @@ class BaseEnvironment(ABC):
             append (bool, optional): Whether to append the new options to the current set of options. Defaults to False.
         """
         if not append:
-            self.options = set(deepcopy(new_options))
+            self.options = set(copy.copy(new_options))
         else:
-            self.options.update(deepcopy(new_options))
+            self.options.update(copy.copy(new_options))
 
     def set_exploration_options(self, new_options: List["Option"], append: bool = False) -> None:
         """
@@ -157,9 +157,9 @@ class BaseEnvironment(ABC):
             append (bool, optional): Whether to append the new options to the current set of exploration options. Defaults to False.
         """
         if not append:
-            self.exploration_options = set(deepcopy(new_options))
+            self.exploration_options = set(copy.copy(new_options))
         else:
-            self.exploration_options.update(deepcopy(new_options))
+            self.exploration_options.update(copy.copy(new_options))
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
@@ -224,7 +224,7 @@ class BaseEnvironment(ABC):
                         for new_successor_state in self.get_successors(successor_state):
                             next_successor_states.append(new_successor_state)
 
-            current_successor_states = deepcopy(next_successor_states)
+            current_successor_states = copy.deepcopy(next_successor_states)
 
         # Build state-transition graph.
         if directed:
