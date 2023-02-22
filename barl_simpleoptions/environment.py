@@ -20,8 +20,8 @@ class BaseEnvironment(ABC):
         """
         Constructs a new environment object.
         """
-        self.options = []
-        self.exploration_options = []
+        self.options = set()
+        self.exploration_options = set()
         self.current_state = None
 
     @abstractmethod
@@ -143,9 +143,9 @@ class BaseEnvironment(ABC):
             append (bool, optional): Whether to append the new options to the current set of options. Defaults to False.
         """
         if not append:
-            self.options = deepcopy(new_options)
+            self.options = set(deepcopy(new_options))
         else:
-            self.options.extend(deepcopy(new_options))
+            self.options.update(deepcopy(new_options))
 
     def set_exploration_options(self, new_options: List["Option"], append: bool = False) -> None:
         """
@@ -157,9 +157,9 @@ class BaseEnvironment(ABC):
             append (bool, optional): Whether to append the new options to the current set of exploration options. Defaults to False.
         """
         if not append:
-            self.exploration_options = deepcopy(new_options)
+            self.exploration_options = set(deepcopy(new_options))
         else:
-            self.exploration_options.extend(deepcopy(new_options))
+            self.exploration_options.update(deepcopy(new_options))
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
