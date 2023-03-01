@@ -1,6 +1,7 @@
 import gc
 import math
 import random
+import statistics
 import numpy as np
 
 from copy import copy, deepcopy
@@ -20,6 +21,7 @@ class OptionAgent:
     def __init__(
         self,
         env: "BaseEnvironment",
+        test_env: "BaseEnvironment" = None,
         epsilon: float = 0.15,
         macro_alpha: float = 0.2,
         intra_option_alpha: float = 0.2,
@@ -41,7 +43,6 @@ class OptionAgent:
         """
 
         self.q_table = defaultdict(lambda: default_action_value)
-        self.env = env
         self.epsilon = epsilon
         self.gamma = gamma
         self.macro_q_alpha = macro_alpha
@@ -50,6 +51,9 @@ class OptionAgent:
         self.executing_options_states = []
         self.executing_options_rewards = []
         self.n_step_updates = n_step_updates
+
+        self.env = env
+        self.test_env = test_env if test_env is not None else None
 
     def macro_q_learn(
         self, state_trajectory: List[Hashable], rewards: List[float], option: "Option", n_step=False
@@ -187,7 +191,7 @@ class OptionAgent:
             if not n_step:
                 break
 
-    def select_action(self, state: Hashable) -> Union[Option, Hashable, None]:
+    def select_action(self, state: Hashable, test: bool = False) -> Union[Option, Hashable, None]:
         """
         Returns the selected option for the given state.
 
@@ -205,7 +209,7 @@ class OptionAgent:
         # base epsilon-greedy policy over the set of currently available options.
         if len(self.executing_options) == 0:
             # Random Action.
-            if random.random() < self.epsilon:
+            if not test and random.random() < self.epsilon:
                 available_options = self.env.get_available_options(state, exploration=True)
                 return random.choice(available_options)
             # Best Action.
@@ -241,6 +245,17 @@ class OptionAgent:
 
         # Set the time-step limit.
         num_time_steps = num_epochs * epoch_length
+
+        # If we are testing the greedy policy separately, make a separate copy of
+        # the environment to use for those tests. Also initialise variables for
+        # tracking test performance.
+        if test_interval > 0:
+            test_interval_time_steps = test_interval * epoch_length
+            test_rewards = []
+
+            # Check that a test environment has been provided - if not, raise an error.
+            if self.test_env is None:
+                raise RuntimeError("No test_env has been provided specified.")
 
         episode_rewards = []
         episode = 0
@@ -303,8 +318,13 @@ class OptionAgent:
                         self.executing_options_rewards.pop()
                         self.executing_options.pop()
 
+                    # If we are testing the greedy policy learned by the agent separately,
+                    # and it is time to test it, then test it.
+                    if test_interval > 0 and time_steps % test_interval_time_steps == 0:
+                        test_rewards.append(self.test_policy(test_length))
+
                 # If we have been training for more than the desired number of time-steps, terminate.
-                if (time_steps > num_time_steps) and (num_time_steps > 0):
+                if time_steps > num_time_steps:
                     terminal = True
 
                 # Handle if the current state is terminal.
@@ -333,7 +353,57 @@ class OptionAgent:
             episode += 1
         gc.collect()
 
-        return episode_rewards
+        if test_interval == 0:
+            return episode_rewards
+        else:
+            return test_rewards
+
+    def test_policy(self, test_length, test_runs=10, allow_exploration=False):
+        test_returns = []
+
+        for test_run in range(test_runs):
+            time_steps = 0
+            run_rewards = []
+            while time_steps < test_length:
+                state = self.test_env.reset()
+                terminal = False
+
+                while not terminal:
+                    selected_option = self.select_action(state, test=not allow_exploration)
+
+                    # Handle if the selected option is a higher-level option.
+                    if isinstance(selected_option, Option):
+                        self.executing_options.append(copy(selected_option))
+                        self.executing_options_states.append([deepcopy(state)])
+                        self.executing_options_rewards.append([])
+
+                    # Handle if the selected option is a primitive action.
+                    else:
+                        time_steps += 1
+                        next_state, reward, terminal, __ = self.test_env.step(selected_option)
+
+                        state = deepcopy(next_state)
+                        run_rewards.append(reward)
+
+                        # Terminate any options which need terminating this time-step.
+                        while self.executing_options and self._roll_termination(self.executing_options[-1], next_state):
+                            self.executing_options_states.pop()
+                            self.executing_options_rewards.pop()
+                            self.executing_options.pop()
+
+                    # If we have been testing for more than the desired number of time-steps, terminate.
+                    if time_steps > test_length:
+                        terminal = True
+
+                    # Handle if the current state is terminal.
+                    if terminal:
+                        while len(self.executing_options) > 0:
+                            self.executing_options_states.pop()
+                            self.executing_options_rewards.pop()
+                            self.executing_options.pop()
+
+            test_returns.append(sum(run_rewards))
+        return statistics.mean(test_returns)
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:
         # Computes the discounted reward given an ordered list of rewards, and a discount factor.
