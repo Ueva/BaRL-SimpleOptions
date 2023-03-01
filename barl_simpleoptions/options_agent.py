@@ -222,24 +222,31 @@ class OptionAgent:
         else:
             return self.executing_options[-1].policy(state)
 
-    def run_agent(self, num_episodes: int = 100, num_time_steps: int = 0, render_interval: int = 0) -> List[float]:
+    def run_agent(
+        self, num_epochs, epoch_length, render_interval: int = 0, test_interval: int = 0, test_length: int = 0
+    ) -> List[float]:
         """
         Trains the agent for a given number of episodes.
 
         Args:
-            num_episodes (int): The number of episodes to train the agent for. Defaults to 100. Ignored if num_time_steps is specified.
-            num_time_steps (int): The minimum number of time-steps to train the agent for. Defaults to 0.
-            render_interval (int, optional): How often to call the environement's render function, in time-steps. Zero by default, disabling rendering.
+            num_epochs (int): The number of epochs to train the agent for.
+            epoch_length (int): How many time-steps each epoch should last for.
+            render_interval (int, optional): How often (in time-steps) to call the environement's render function, in time-steps. Zero by default, disabling rendering.
+            test_interval (int, optional): How often (in epochs) to evaluate the greedy policy learned by the agent. Zero by default, in which case training performance is returned.
+            test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
 
         Returns:
             List[float]: A list containing floats representing the rewards earned by the agent each time-step.
         """
-        episode_rewards = []
 
+        # Set the time-step limit.
+        num_time_steps = num_epochs * epoch_length
+
+        episode_rewards = []
         episode = 0
         time_steps = 0
 
-        while (episode < num_episodes and num_time_steps <= 0) or (time_steps < num_time_steps and num_time_steps > 0):
+        while time_steps < num_time_steps:
             episode_rewards.append([])
 
             # Initialise initial state variables.
