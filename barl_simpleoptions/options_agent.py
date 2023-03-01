@@ -255,7 +255,6 @@ class OptionAgent:
 
             if render_interval > 0:
                 self.env.render()
-                time_since_last_render = 0
 
             while not terminal:
                 selected_option = self.select_action(state)
@@ -272,11 +271,8 @@ class OptionAgent:
                     next_state, reward, terminal, __ = self.env.step(selected_option)
 
                     # Render, if we need to.
-                    if render_interval > 0:
-                        time_since_last_render += 1
-                        if time_since_last_render >= render_interval:
-                            self.env.render()
-                            time_since_last_render = 0
+                    if render_interval > 0 and time_steps % render_interval == 0:
+                        self.env.render()
 
                     state = deepcopy(next_state)
                     episode_rewards[episode].append(reward)
