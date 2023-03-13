@@ -191,7 +191,9 @@ class OptionAgent:
             if not n_step:
                 break
 
-    def select_action(self, state: Hashable, test: bool = False) -> Union[Option, Hashable, None]:
+    def select_action(
+        self, state: Hashable, executing_options: List["Option"], test: bool = False
+    ) -> Union[Option, Hashable, None]:
         """
         Returns the selected option for the given state.
 
@@ -207,7 +209,7 @@ class OptionAgent:
 
         # If we do not currently have any options executing, we act according to the agent's
         # base epsilon-greedy policy over the set of currently available options.
-        if len(self.executing_options) == 0:
+        if len(executing_options) == 0:
             # Random Action.
             if not test and random.random() < self.epsilon:
                 available_options = self.env.get_available_options(state, exploration=True)
@@ -224,7 +226,7 @@ class OptionAgent:
                 ]
         # If we are currently following an option's policy, return what it selects.
         else:
-            return self.executing_options[-1].policy(state)
+            return executing_options[-1].policy(state)
 
     def run_agent(
         self, num_epochs, epoch_length, render_interval: int = 0, test_interval: int = 0, test_length: int = 0
@@ -272,7 +274,7 @@ class OptionAgent:
                 self.env.render()
 
             while not terminal:
-                selected_option = self.select_action(state)
+                selected_option = self.select_action(state, self.executing_options)
 
                 # Handle if the selected option is a higher-level option.
                 if isinstance(selected_option, Option):
@@ -366,16 +368,15 @@ class OptionAgent:
             run_rewards = []
             while time_steps < test_length:
                 state = self.test_env.reset()
+                executing_options = []
                 terminal = False
 
                 while not terminal:
-                    selected_option = self.select_action(state, test=not allow_exploration)
+                    selected_option = self.select_action(state, executing_options, test=not allow_exploration)
 
                     # Handle if the selected option is a higher-level option.
                     if isinstance(selected_option, Option):
-                        self.executing_options.append(copy(selected_option))
-                        self.executing_options_states.append([deepcopy(state)])
-                        self.executing_options_rewards.append([])
+                        executing_options.append(copy(selected_option))
 
                     # Handle if the selected option is a primitive action.
                     else:
@@ -386,10 +387,8 @@ class OptionAgent:
                         run_rewards.append(reward)
 
                         # Terminate any options which need terminating this time-step.
-                        while self.executing_options and self._roll_termination(self.executing_options[-1], next_state):
-                            self.executing_options_states.pop()
-                            self.executing_options_rewards.pop()
-                            self.executing_options.pop()
+                        while executing_options and self._roll_termination(executing_options[-1], next_state):
+                            executing_options.pop()
 
                     # If we have been testing for more than the desired number of time-steps, terminate.
                     if time_steps > test_length:
@@ -397,10 +396,8 @@ class OptionAgent:
 
                     # Handle if the current state is terminal.
                     if terminal:
-                        while len(self.executing_options) > 0:
-                            self.executing_options_states.pop()
-                            self.executing_options_rewards.pop()
-                            self.executing_options.pop()
+                        while len(executing_options) > 0:
+                            executing_options.pop()
 
             test_returns.append(sum(run_rewards))
         return statistics.mean(test_returns)
