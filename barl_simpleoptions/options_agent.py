@@ -260,6 +260,7 @@ class OptionAgent:
                 raise RuntimeError("No test_env has been provided specified.")
 
         episode_rewards = []
+        # active_options = []
         episode = 0
         time_steps = 0
 
@@ -293,6 +294,7 @@ class OptionAgent:
 
                     state = deepcopy(next_state)
                     episode_rewards[episode].append(reward)
+                    # active_options.append(len(self.executing_options))
 
                     for i in range(len(self.executing_options)):
                         self.executing_options_states[i].append(deepcopy(next_state))
@@ -356,8 +358,10 @@ class OptionAgent:
         gc.collect()
 
         if test_interval == 0:
+            # return episode_rewards, active_options
             return episode_rewards
         else:
+            # return test_rewards, active_options
             return test_rewards
 
     def test_policy(self, test_length, test_runs=10, allow_exploration=False):
