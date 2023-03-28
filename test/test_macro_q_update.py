@@ -2,8 +2,8 @@ import pytest
 
 from copy import deepcopy
 
-from barl_simpleoptions.option import Option
-from barl_simpleoptions.options_agent import OptionAgent
+from simpleoptions.option import Option
+from simpleoptions.options_agent import OptionAgent
 
 
 class DummyOption(Option):
@@ -122,23 +122,23 @@ def test_three_step_macro_q_update_1():
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
     assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[0]
-        + gamma ** 1 * reward_trajectory[1]
-        + gamma ** 2 * reward_trajectory[2]
-        + gamma ** 3 * initial_values["state_4, 1"]
+        + gamma**1 * reward_trajectory[1]
+        + gamma**2 * reward_trajectory[2]
+        + gamma**3 * initial_values["state_4, 1"]
         - initial_values["state_1, option"]
     )
 
     # Ensure that the value of executing our test option in state_2 has been updated correctly.
     assert agent.q_table[(hash("state_2"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[1]
-        + gamma ** 1 * reward_trajectory[2]
-        + gamma ** 2 * initial_values["state_4, 1"]
+        + gamma**1 * reward_trajectory[2]
+        + gamma**2 * initial_values["state_4, 1"]
         - initial_values["state_2, option"]
     )
 
     # Ensure that the value of executing our test option in state_3 has been updated correctly.
     assert agent.q_table[(hash("state_3"), hash(option))] == initial_values["state_1, option"] + alpha * (
-        reward_trajectory[2] + gamma ** 1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
+        reward_trajectory[2] + gamma**1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
     )
 
 
@@ -170,21 +170,21 @@ def test_three_step_macro_q_update_2():
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
     assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[0]
-        + gamma ** 1 * reward_trajectory[1]
-        + gamma ** 2 * reward_trajectory[2]
-        + gamma ** 3 * initial_values["state_4, 1"]
+        + gamma**1 * reward_trajectory[1]
+        + gamma**2 * reward_trajectory[2]
+        + gamma**3 * initial_values["state_4, 1"]
         - initial_values["state_1, option"]
     )
 
     # Ensure that the value of executing our test option in state_2 has been updated correctly.
     assert agent.q_table[(hash("state_2"), hash(option))] == initial_values["state_2, option"] + alpha * (
         reward_trajectory[1]
-        + gamma ** 1 * reward_trajectory[2]
-        + gamma ** 2 * initial_values["state_4, 1"]
+        + gamma**1 * reward_trajectory[2]
+        + gamma**2 * initial_values["state_4, 1"]
         - initial_values["state_2, option"]
     )
 
     # Ensure that the value of executing our test option in state_3 has been updated correctly.
     assert agent.q_table[(hash("state_3"), hash(option))] == initial_values["state_3, option"] + alpha * (
-        reward_trajectory[2] + gamma ** 1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
+        reward_trajectory[2] + gamma**1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
     )

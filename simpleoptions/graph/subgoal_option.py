@@ -3,7 +3,7 @@ import networkx as nx
 
 from typing import Hashable
 
-from barl_simpleoptions.option import Option
+from simpleoptions.option import Option
 
 
 class SubgoalOption(Option):

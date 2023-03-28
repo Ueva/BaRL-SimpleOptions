@@ -1,4 +1,4 @@
-from barl_simpleoptions.option import Option
+from simpleoptions.option import Option
 
 
 class subgoal_option(Option):

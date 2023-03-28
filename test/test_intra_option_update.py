@@ -1,6 +1,6 @@
 import pytest
 
-from barl_simpleoptions import OptionAgent, Option, PrimitiveOption, option, primitive_option
+from simpleoptions import OptionAgent, Option, PrimitiveOption, option, primitive_option
 
 
 class DummyOption(Option):

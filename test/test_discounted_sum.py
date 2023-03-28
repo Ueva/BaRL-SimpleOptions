@@ -1,6 +1,6 @@
 import pytest
 
-from barl_simpleoptions import OptionAgent
+from simpleoptions import OptionAgent
 
 # Test single reward.
 def test_discounted_reward_single():
@@ -17,7 +17,7 @@ def test_discounted_reward_single():
 def test_discounted_reward_multiple():
     rewards = [1, 2, 3, 4, 5]
     gamma = 0.9
-    correct_discounted_reward = 1 * gamma ** 0 + 2 * gamma ** 1 + 3 * gamma ** 2 + 4 * gamma ** 3 + 5 * gamma ** 4
+    correct_discounted_reward = 1 * gamma**0 + 2 * gamma**1 + 3 * gamma**2 + 4 * gamma**3 + 5 * gamma**4
 
     discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
 
@@ -39,7 +39,7 @@ def test_discounted_reward_zero():
 def test_discounted_reward_negative():
     rewards = [-1, -2, -3]
     gamma = 0.9
-    correct_discounted_reward = -1 * gamma ** 0 + -2 * gamma ** 1 + -3 * gamma ** 2
+    correct_discounted_reward = -1 * gamma**0 + -2 * gamma**1 + -3 * gamma**2
 
     discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
 

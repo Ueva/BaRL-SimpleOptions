@@ -1,4 +1,4 @@
-from barl_simpleoptions import Option
+from simpleoptions import Option
 from small_rooms_env import SmallRoomsEnv
 
 # Here, we will manually define a simple option which takes out agent from

@@ -3,8 +3,8 @@ import gc
 import numpy as np
 import matplotlib.pyplot as plt
 
-from barl_simpleoptions.option import Option
-from barl_simpleoptions import OptionAgent, PrimitiveOption
+from simpleoptions.option import Option
+from simpleoptions import OptionAgent, PrimitiveOption
 
 from small_rooms_env import SmallRoomsEnv
 from small_rooms_doorway_option import DoorwayOption

@@ -5,7 +5,7 @@ from typing import List
 from typing import Hashable, Tuple
 from abc import ABC, abstractmethod
 
-from barl_simpleoptions.option import Option
+from simpleoptions.option import Option
 
 
 class BaseEnvironment(ABC):
