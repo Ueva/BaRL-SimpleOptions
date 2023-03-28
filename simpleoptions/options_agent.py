@@ -8,8 +8,8 @@ from copy import copy, deepcopy
 from collections import defaultdict
 from typing import Hashable, List, Union
 
-from barl_simpleoptions.option import Option
-from barl_simpleoptions.environment import BaseEnvironment
+from simpleoptions.option import Option
+from simpleoptions.environment import BaseEnvironment
 
 
 class OptionAgent:

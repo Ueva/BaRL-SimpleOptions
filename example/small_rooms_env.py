@@ -2,7 +2,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from barl_simpleoptions import BaseEnvironment
+from simpleoptions import BaseEnvironment
 
 #  The environment's layout, consisting of two 3x3 rooms connected by a small doorway.
 #  The start is in the top-left, the goal is in the bottom-right.

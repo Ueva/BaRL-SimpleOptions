@@ -1,4 +1,4 @@
-# BaRL-SimpleOptions
+# SimpleOptions
 
 This Python package aims to provide a simple framework for implementing and using options in Hierarchical Reinforcement Learning (HRL) projects.
 
@@ -12,9 +12,9 @@ This code was written with tabular, graph-based HRL methods in mind. It's less o
 
 ## How to Install
 
-Download the repository and, in the root directory, run the command `pip install .`
+The easiest way to install this package is to simply run `pip install simpleoptions`.
 
-Support for installing via `pip` is planned.
+If you want to install from source, download the repository and, in the root directory, run the command `pip install .`
 
 ## How to Use This Code
 

@@ -4,8 +4,8 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="barl_simpleoptions",
-    version="0.3.0",
+    name="simpleoptions",
+    version="0.3.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides a simple framework for working with Options in Reinforcement Learning.",
@@ -22,4 +22,5 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Natural Language :: English",
     ],
+    python_requires=">=3.6",
 )

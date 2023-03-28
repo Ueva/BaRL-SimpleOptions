@@ -1,7 +1,7 @@
 from typing import Hashable
 
-from barl_simpleoptions.option import Option
-from barl_simpleoptions.environment import BaseEnvironment
+from simpleoptions.option import Option
+from simpleoptions.environment import BaseEnvironment
 
 
 class PrimitiveOption(Option):
