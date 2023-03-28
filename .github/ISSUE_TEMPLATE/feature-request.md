@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Describe You Feature**
-A clear and concise description of the feature that you would like added to BaRL-SimpleOptions.
+A clear and concise description of the feature that you would like added to SimpleOptions.
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is, and how your suggestion would ameliorate it.
