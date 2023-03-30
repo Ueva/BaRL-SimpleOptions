@@ -1,9 +1,9 @@
 import pytest
 
-from simpleoptions import OptionAgent, Option, PrimitiveOption, option, primitive_option
+from simpleoptions import OptionAgent, BaseOption, PrimitiveOption, option, primitive_option
 
 
-class DummyOption(Option):
+class DummyOption(BaseOption):
     """
     A dummy option for testing.
 

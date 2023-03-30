@@ -1,7 +1,7 @@
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 
 
-class subgoal_option(Option):
+class subgoal_option(BaseOption):
     pass
 
 

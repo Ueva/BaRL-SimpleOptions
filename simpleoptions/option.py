@@ -3,7 +3,7 @@ from typing import Hashable
 from abc import ABC, abstractmethod
 
 
-class Option(ABC):
+class BaseOption(ABC):
     """
     Interface for a hierarchical reinforcement learning option.
     """

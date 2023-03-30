@@ -1,10 +1,10 @@
 from typing import Hashable
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 from simpleoptions.environment import BaseEnvironment
 
 
-class PrimitiveOption(Option):
+class PrimitiveOption(BaseOption):
     """
     Class representing a primitive option.
     Primitive options terminate with probability one in every state, and have

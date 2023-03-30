@@ -12,7 +12,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-SimpleOptions",
-    packages=setuptools.find_packages(exclude=("example", "test")),
+    # packages=setuptools.find_packages(exclude=("example", "test")),
+    packages = ["simpleoptions"],
     install_requires=["numpy", "networkx"],
     classifiers=[
         "Programming Language :: Python :: 3",
