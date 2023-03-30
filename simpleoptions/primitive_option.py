@@ -12,6 +12,10 @@ class PrimitiveOption(BaseOption):
     primitive actions are available.
     """
 
+    # work around that fixes issues with Dill load (specifically overloading hash) \
+    # https://stackoverflow.com/questions/75409930/pickle-and-dill-cant-load-objects-with-overridden-hash-function-attributee
+    action = ""
+
     def __init__(self, action: Hashable, env: "BaseEnvironment"):
         """Constructs a new primitive option.
 
