@@ -29,7 +29,7 @@ class PrimitiveOption(BaseOption):
     def initiation(self, state: Hashable) -> bool:
         return self.action in self.env.get_available_actions(state)
 
-    def policy(self, state: Hashable) -> Hashable:
+    def policy(self, state: Hashable, test: bool = False) -> Hashable:
         return self.action
 
     def termination(self, state: Hashable) -> float:
