@@ -3,10 +3,10 @@ import networkx as nx
 
 from typing import Hashable
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 
 
-class SubgoalOption(Option):
+class SubgoalOption(BaseOption):
     """
     Class representing a temporally abstract action in reinforcement learning through a policy to
     be executed between an initiation state and a termination state.

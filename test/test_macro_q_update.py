@@ -2,11 +2,11 @@ import pytest
 
 from copy import deepcopy
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 from simpleoptions.options_agent import OptionAgent
 
 
-class DummyOption(Option):
+class DummyOption(BaseOption):
     """
     A dummy option for testing.
 

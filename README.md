@@ -4,11 +4,11 @@ This Python package aims to provide a simple framework for implementing and usin
 
 Key classes:
 
-- `Option`: An abstract class representing an option with an initiation set, option policy, and termination condition.
+- `BaseOption`: An abstract class representing an option with an initiation set, option policy, and termination condition.
 - `BaseEnvironment`: An abstract base class representing an agent's environment. The environment specification is based on the OpenAI Gym `Env` specifciation, but does not implement it directly. It supports both primitive actions and options, as well as functionality for constructing State-Transition Graphs (STGs) out-of-the-box using NetworkX.
 - `OptionAgent`: A class representing an HRL agent, which can interact with its environment and has access to a number of options. It includes implementations of Macro-Q Learning and Intra-Option learning, with many customisable features.
 
-This code was written with tabular, graph-based HRL methods in mind. It's less of a plug-and-play repository, and is intended to be used to as a basic framework for developing your own `Option` and `Environment` implementations.
+This code was written with tabular, graph-based HRL methods in mind. It's less of a plug-and-play repository, and is intended to be used to as a basic framework for developing your own `BaseOption` and `Environment` implementations.
 
 ## How to Install
 
@@ -28,13 +28,13 @@ The first step to using this framework involves defining an environment for your
 
 You must now define/discover options for your agent to use when interacting with its environment. How you go about this is up to you &mdash; this framework allows you to train agents using options, not discover them. An ever-growing number of option discovery methods can be found in the hierarchical reinforcement learning literature.
 
-To define an `Option`, you need to implement the following method:
+To define an option, you need to subclass `BaseOption` and implement the following methods:
 
 - `initiation` - a method that takes a state as its input, and returns whether the option can be invoked in that state.
 - `termination` - a method that takes a state as its input, and returns the probability that the option terminates in that state.
 - `policy` - a method that takes a state as its input, and returns the action (either a primitive action or another option) that this option would select in this state.
 
-This minimal framework gives you a lot of flexibility in defining your options. For example, your `policy` method could make use of a simple dictionary mapping states to actions, it could be based on some learned action-value function, or even on some function of the state.
+This minimal framework gives you a lot of flexibility in defining your options. For example, your `policy` method could make use of a simple dictionary mapping states to actions, it could be based on some learned action-value function, or any other function of the state.
 
 As an example, consider an example option that takes an agent to a sub-goal state from any of the nearest 50 states. `initiation` would return `True` for the nearest 50 states to the subgoal, and `False` otherwise. `termination` would return `0.0` for states in the initiation set, and `1.0` otherwise. `policy` woudl return the primitive action that takes the agent one step along the shortest path to the subgoal state.
 

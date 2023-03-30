@@ -1,11 +1,11 @@
-from simpleoptions import Option
+from simpleoptions import BaseOption
 from small_rooms_env import SmallRoomsEnv
 
 # Here, we will manually define a simple option which takes out agent from
 # any state in our SmallRooms gridworld environment to the doorway in the middle.
 
 
-class DoorwayOption(Option):
+class DoorwayOption(BaseOption):
     def __init__(self):
         return
 

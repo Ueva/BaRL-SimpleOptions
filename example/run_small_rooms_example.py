@@ -3,7 +3,7 @@ import gc
 import numpy as np
 import matplotlib.pyplot as plt
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 from simpleoptions import OptionAgent, PrimitiveOption
 
 from small_rooms_env import SmallRoomsEnv

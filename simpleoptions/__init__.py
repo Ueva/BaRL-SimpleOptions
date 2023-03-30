@@ -1,4 +1,4 @@
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 from simpleoptions.primitive_option import PrimitiveOption
 
 from simpleoptions.options_agent import OptionAgent

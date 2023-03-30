@@ -8,7 +8,7 @@ from copy import copy, deepcopy
 from collections import defaultdict
 from typing import Hashable, List, Union
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 from simpleoptions.environment import BaseEnvironment
 
 
@@ -56,7 +56,7 @@ class OptionAgent:
         self.test_env = test_env if test_env is not None else None
 
     def macro_q_learn(
-        self, state_trajectory: List[Hashable], rewards: List[float], option: "Option", n_step=False
+        self, state_trajectory: List[Hashable], rewards: List[float], option: "BaseOption", n_step=False
     ) -> None:
         """
         Performs Macro Q-Learning updates along the given trajectory for the given Option.
@@ -124,8 +124,8 @@ class OptionAgent:
         self,
         state_trajectory: List[Hashable],
         rewards: List[float],
-        executed_option: Option,
-        higher_level_option: Union["Option", None] = None,
+        executed_option: BaseOption,
+        higher_level_option: Union["BaseOption", None] = None,
         n_step=False,
     ) -> None:
         """
@@ -192,8 +192,8 @@ class OptionAgent:
                 break
 
     def select_action(
-        self, state: Hashable, executing_options: List["Option"], test: bool = False
-    ) -> Union[Option, Hashable, None]:
+        self, state: Hashable, executing_options: List["BaseOption"], test: bool = False
+    ) -> Union[BaseOption, Hashable, None]:
         """
         Returns the selected option for the given state.
 
@@ -278,7 +278,7 @@ class OptionAgent:
                 selected_option = self.select_action(state, self.executing_options)
 
                 # Handle if the selected option is a higher-level option.
-                if isinstance(selected_option, Option):
+                if isinstance(selected_option, BaseOption):
                     self.executing_options.append(copy(selected_option))
                     self.executing_options_states.append([deepcopy(state)])
                     self.executing_options_rewards.append([])
@@ -379,7 +379,7 @@ class OptionAgent:
                     selected_option = self.select_action(state, executing_options, test=not allow_exploration)
 
                     # Handle if the selected option is a higher-level option.
-                    if isinstance(selected_option, Option):
+                    if isinstance(selected_option, BaseOption):
                         executing_options.append(copy(selected_option))
 
                     # Handle if the selected option is a primitive action.
@@ -418,7 +418,7 @@ class OptionAgent:
 
         return discounted_sum_of_rewards
 
-    def _roll_termination(self, option: "Option", state: Hashable):
+    def _roll_termination(self, option: "BaseOption", state: Hashable):
         # Rolls on whether or not the given option terminates in the given state.
         # Will work with stochastic and deterministic termination functions.
         if random.random() > option.termination(state):

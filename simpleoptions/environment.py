@@ -5,7 +5,7 @@ from typing import List
 from typing import Hashable, Tuple
 from abc import ABC, abstractmethod
 
-from simpleoptions.option import Option
+from simpleoptions.option import BaseOption
 
 
 class BaseEnvironment(ABC):
@@ -105,7 +105,7 @@ class BaseEnvironment(ABC):
         """
         pass
 
-    def get_available_options(self, state: Hashable, exploration=False) -> List["Option"]:
+    def get_available_options(self, state: Hashable, exploration=False) -> List["BaseOption"]:
         """
         This method returns the options (primitive options + subgoal options) which are available to the
         agent in the given environmental state.
@@ -133,7 +133,7 @@ class BaseEnvironment(ABC):
 
             return available_options
 
-    def set_options(self, new_options: List["Option"], append: bool = False) -> None:
+    def set_options(self, new_options: List["BaseOption"], append: bool = False) -> None:
         """
         Sets the set of options available in this environment.
         By default, replaces the current list of available options. If you wish to extend the
@@ -147,7 +147,7 @@ class BaseEnvironment(ABC):
         else:
             self.options.update(copy.copy(new_options))
 
-    def set_exploration_options(self, new_options: List["Option"], append: bool = False) -> None:
+    def set_exploration_options(self, new_options: List["BaseOption"], append: bool = False) -> None:
         """
         Sets the set of options available solely for exploration in this environment.
         By default, replaces the current list of available options. If you wish to extend the
