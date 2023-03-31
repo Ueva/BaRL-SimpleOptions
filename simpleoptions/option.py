@@ -25,12 +25,13 @@ class BaseOption(ABC):
         pass
 
     @abstractmethod
-    def policy(self, state: Hashable) -> Hashable:
+    def policy(self, state: Hashable, test: bool = False) -> Hashable:
         """
         Returns the action specified by this option's policy for a given state.
 
         Arguments:
             state {Hashable} -- The environmental state in which the option chooses an action in.
+            test [bool] --  When True the option follows a greedy-policy, for evaluation. Defaults to False.
 
         Returns:
             action [Hashable] -- The action specified by the option's policy in this state.
