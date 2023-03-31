@@ -12,6 +12,10 @@ class PrimitiveOption(BaseOption):
     primitive actions are available.
     """
 
+    # work around that fixes issues with Dill load (specifically overloading hash) \
+    # https://stackoverflow.com/questions/75409930/pickle-and-dill-cant-load-objects-with-overridden-hash-function-attributee
+    action = ""
+
     def __init__(self, action: Hashable, env: "BaseEnvironment"):
         """Constructs a new primitive option.
 
@@ -25,7 +29,7 @@ class PrimitiveOption(BaseOption):
     def initiation(self, state: Hashable) -> bool:
         return self.action in self.env.get_available_actions(state)
 
-    def policy(self, state: Hashable) -> Hashable:
+    def policy(self, state: Hashable, test: bool = False) -> Hashable:
         return self.action
 
     def termination(self, state: Hashable) -> float:
