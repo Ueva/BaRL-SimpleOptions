@@ -19,7 +19,6 @@ from simpleoptions import BaseEnvironment
 
 
 class SmallRoomsEnv(BaseEnvironment):
-
     # Mapping from action IDs to human-readable descriptions.
     ACTION_NAMES = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
     ACTION_IDS = {"UP": 0, "DOWN": 1, "LEFT": 2, "RIGHT": 3}

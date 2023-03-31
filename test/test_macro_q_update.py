@@ -20,7 +20,7 @@ class DummyOption(BaseOption):
     def initiation(self, state):
         return True
 
-    def policy(self, state, test = False):
+    def policy(self, state, test=False):
         return 1
 
     def termination(self, state):
@@ -68,12 +68,8 @@ def test_one_step_macro_q_update_1():
     # Ensure that the new value of initating our test option in state_1 is correct after performing the update.
     # Our dummy environment returns a list containing the primitive action 1 as the available action in state_2,
     # and its value will be zero (we assume that this is the first update, and initial q-valaues are zero by default).
-    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
-        reward_trajectory[0]
-        + gamma * initial_values["state_2, 1"]
-        - initial_values["state_1, option"]
+    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
+        reward_trajectory[0] + gamma * initial_values["state_2, 1"] - initial_values["state_1, option"]
     )
 
 
@@ -100,12 +96,8 @@ def test_one_step_macro_q_update_2():
     # 1 was earned after transitioning from state_1 to state_2.
     agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
-    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
-        reward_trajectory[0]
-        + gamma * initial_values["state_2, 1"]
-        - initial_values["state_1, option"]
+    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
+        reward_trajectory[0] + gamma * initial_values["state_2, 1"] - initial_values["state_1, option"]
     )
 
 
@@ -133,9 +125,7 @@ def test_three_step_macro_q_update_1():
     agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
-    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
+    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[0]
         + gamma**1 * reward_trajectory[1]
         + gamma**2 * reward_trajectory[2]
@@ -144,9 +134,7 @@ def test_three_step_macro_q_update_1():
     )
 
     # Ensure that the value of executing our test option in state_2 has been updated correctly.
-    assert agent.q_table[(hash("state_2"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
+    assert agent.q_table[(hash("state_2"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[1]
         + gamma**1 * reward_trajectory[2]
         + gamma**2 * initial_values["state_4, 1"]
@@ -154,12 +142,8 @@ def test_three_step_macro_q_update_1():
     )
 
     # Ensure that the value of executing our test option in state_3 has been updated correctly.
-    assert agent.q_table[(hash("state_3"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
-        reward_trajectory[2]
-        + gamma**1 * initial_values["state_4, 1"]
-        - initial_values["state_3, option"]
+    assert agent.q_table[(hash("state_3"), hash(option))] == initial_values["state_1, option"] + alpha * (
+        reward_trajectory[2] + gamma**1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
     )
 
 
@@ -194,9 +178,7 @@ def test_three_step_macro_q_update_2():
     agent.macro_q_learn(state_trajectory, reward_trajectory, option, n_step=True)
 
     # Ensure that the value of executing our test option in state_1 has been updated correctly.
-    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values[
-        "state_1, option"
-    ] + alpha * (
+    assert agent.q_table[(hash("state_1"), hash(option))] == initial_values["state_1, option"] + alpha * (
         reward_trajectory[0]
         + gamma**1 * reward_trajectory[1]
         + gamma**2 * reward_trajectory[2]
@@ -205,9 +187,7 @@ def test_three_step_macro_q_update_2():
     )
 
     # Ensure that the value of executing our test option in state_2 has been updated correctly.
-    assert agent.q_table[(hash("state_2"), hash(option))] == initial_values[
-        "state_2, option"
-    ] + alpha * (
+    assert agent.q_table[(hash("state_2"), hash(option))] == initial_values["state_2, option"] + alpha * (
         reward_trajectory[1]
         + gamma**1 * reward_trajectory[2]
         + gamma**2 * initial_values["state_4, 1"]
@@ -215,10 +195,6 @@ def test_three_step_macro_q_update_2():
     )
 
     # Ensure that the value of executing our test option in state_3 has been updated correctly.
-    assert agent.q_table[(hash("state_3"), hash(option))] == initial_values[
-        "state_3, option"
-    ] + alpha * (
-        reward_trajectory[2]
-        + gamma**1 * initial_values["state_4, 1"]
-        - initial_values["state_3, option"]
+    assert agent.q_table[(hash("state_3"), hash(option))] == initial_values["state_3, option"] + alpha * (
+        reward_trajectory[2] + gamma**1 * initial_values["state_4, 1"] - initial_values["state_3, option"]
     )
