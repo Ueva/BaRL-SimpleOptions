@@ -20,7 +20,7 @@ class DummyOption(BaseOption):
     def initiation(self, state):
         return True
 
-    def policy(self, state, test):
+    def policy(self, state, test = False):
         return 1
 
     def termination(self, state):
