@@ -1,9 +1,6 @@
 import pytest
 
-from copy import deepcopy
-
-from simpleoptions.option import BaseOption
-from simpleoptions.options_agent import OptionAgent
+from simpleoptions import BaseOption,OptionAgent
 
 
 class DummyOption(BaseOption):
