@@ -55,6 +55,10 @@ class OptionAgent:
         self.env = env
         self.test_env = test_env if test_env is not None else None
 
+        self.evaluation_log = defaultdict(
+            lambda: defaultdict(lambda: defaultdict(list))
+        )  # {evaluation_number: {evaluation_run: {log_data: []}}}
+
     def macro_q_learn(
         self,
         state_trajectory: List[Hashable],
@@ -83,7 +87,9 @@ class OptionAgent:
                     f"Option {option.hierarchy_level}-{option.source_cluster}->{option.target_cluster} ran for {len(state_trajectory)} decision stages.\n"
                 )
                 # Write the q-values in the state it got stuck in.
-                most_common_state = max(set(state_trajectory), key=state_trajectory.count)
+                most_common_state = max(
+                    set(state_trajectory), key=state_trajectory.count
+                )
                 q_values = {
                     str(o): option.q_table.get((hash(most_common_state), hash(o)), 0)
                     for o in self.env.get_available_options(most_common_state)
@@ -113,8 +119,12 @@ class OptionAgent:
                 q_values = [0]
 
             # Perform Macro-Q Update
-            self.q_table[(hash(initiation_state), hash(option))] = old_value + self.macro_q_alpha * (
-                discounted_sum_of_rewards + math.pow(self.gamma, len(rewards)) * max(q_values) - old_value
+            self.q_table[
+                (hash(initiation_state), hash(option))
+            ] = old_value + self.macro_q_alpha * (
+                discounted_sum_of_rewards
+                + math.pow(self.gamma, len(rewards)) * max(q_values)
+                - old_value
             )
 
             state_trajectory.pop(0)
@@ -155,36 +165,51 @@ class OptionAgent:
             # We perform an intra-option update for all other options which select executed_option in this state.
             for other_option in self.env.get_available_options(initiation_state):
                 if (
-                    (hash(other_option) != hash(higher_level_option) or higher_level_option is None)
+                    (
+                        hash(other_option) != hash(higher_level_option)
+                        or higher_level_option is None
+                    )
                     and other_option.initiation(initiation_state)
-                    and hash(other_option.policy(initiation_state)) == hash(executed_option)
+                    and hash(other_option.policy(initiation_state))
+                    == hash(executed_option)
                 ):
-                    old_value = self.q_table[(hash(initiation_state), hash(other_option))]
+                    old_value = self.q_table[
+                        (hash(initiation_state), hash(other_option))
+                    ]
 
                     # Compute discounted sum of rewards.
-                    discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
+                    discounted_sum_of_rewards = self._discounted_return(
+                        rewards, self.gamma
+                    )
 
                     if not self.env.is_state_terminal(termination_state):
                         # If the option terminates, we consider the value of the next best option.
-                        next_q_terminates = other_option.termination(termination_state) * max(
+                        next_q_terminates = other_option.termination(
+                            termination_state
+                        ) * max(
                             [
                                 self.q_table[(hash(termination_state), hash(o))]
-                                for o in self.env.get_available_options(termination_state)
+                                for o in self.env.get_available_options(
+                                    termination_state
+                                )
                             ]
                         )
                         # If the option continues, we consider the value of the currently executing option.
-                        next_q_continues = (1 - other_option.termination(termination_state)) * self.q_table[
-                            (hash(termination_state), hash(other_option))
-                        ]
+                        next_q_continues = (
+                            1 - other_option.termination(termination_state)
+                        ) * self.q_table[(hash(termination_state), hash(other_option))]
 
                     else:
                         next_q_terminates = 0
                         next_q_continues = 0
 
                     # Perform Intra-Option Update.
-                    self.q_table[(hash(initiation_state), hash(other_option))] = old_value + self.intra_option_alpha * (
+                    self.q_table[
+                        (hash(initiation_state), hash(other_option))
+                    ] = old_value + self.intra_option_alpha * (
                         discounted_sum_of_rewards
-                        + math.pow(self.gamma, len(rewards)) * (next_q_continues + next_q_terminates)
+                        + math.pow(self.gamma, len(rewards))
+                        * (next_q_continues + next_q_terminates)
                         - old_value
                     )
 
@@ -216,17 +241,29 @@ class OptionAgent:
         if len(executing_options) == 0:
             # Random Action.
             if not test and random.random() < self.epsilon:
-                available_options = self.env.get_available_options(state, exploration=True)
+                available_options = self.env.get_available_options(
+                    state, exploration=True
+                )
                 return random.choice(available_options)
             # Best Action.
             else:
-                available_options = self.env.get_available_options(state, exploration=False)
+                available_options = self.env.get_available_options(
+                    state, exploration=False
+                )
                 # Find Q-values of available options.
-                q_values = [self.q_table[(hash(state), hash(o))] for o in available_options]
+                q_values = [
+                    self.q_table[(hash(state), hash(o))] for o in available_options
+                ]
 
                 # Return the option with the highest Q-value, breaking ties randomly.
                 return available_options[
-                    random.choice([idx for idx, q_value in enumerate(q_values) if q_value == max(q_values)])
+                    random.choice(
+                        [
+                            idx
+                            for idx, q_value in enumerate(q_values)
+                            if q_value == max(q_values)
+                        ]
+                    )
                 ]
         # If we are currently following an option's policy, return what it selects.
         else:
@@ -239,6 +276,7 @@ class OptionAgent:
         render_interval: int = 0,
         test_interval: int = 0,
         test_length: int = 0,
+        test_runs: int = 10,
     ) -> List[float]:
         """
         Trains the agent for a given number of episodes.
@@ -310,8 +348,13 @@ class OptionAgent:
                         self.executing_options_rewards[i].append(reward)
 
                     # Terminate any options which need terminating this time-step.
-                    while self.executing_options and self._roll_termination(self.executing_options[-1], next_state):
-                        if self.executing_options[-1] not in self.env.exploration_options:
+                    while self.executing_options and self._roll_termination(
+                        self.executing_options[-1], next_state
+                    ):
+                        if (
+                            self.executing_options[-1]
+                            not in self.env.exploration_options
+                        ):
                             # Perform a macro-q learning update for the terminating option.
                             self.macro_q_learn(
                                 self.executing_options_states[-1],
@@ -324,7 +367,9 @@ class OptionAgent:
                                 self.executing_options_states[-1],
                                 self.executing_options_rewards[-1],
                                 self.executing_options[-1],
-                                self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                                self.executing_options[-2]
+                                if len(self.executing_options) > 1
+                                else None,
                                 self.n_step_updates,
                             )
                         self.executing_options_states.pop()
@@ -334,7 +379,13 @@ class OptionAgent:
                     # If we are testing the greedy policy learned by the agent separately,
                     # and it is time to test it, then test it.
                     if test_interval > 0 and time_steps % test_interval_time_steps == 0:
-                        test_rewards.append(self.test_policy(test_length))
+                        test_rewards.append(
+                            self.test_policy(
+                                test_length,
+                                test_runs,
+                                time_steps // test_interval_time_steps,
+                            )
+                        )
 
                 # If we have been training for more than the desired number of time-steps, terminate.
                 if time_steps > num_time_steps:
@@ -343,7 +394,10 @@ class OptionAgent:
                 # Handle if the current state is terminal.
                 if terminal:
                     while len(self.executing_options) > 0:
-                        if self.executing_options[-1] not in self.env.exploration_options:
+                        if (
+                            self.executing_options[-1]
+                            not in self.env.exploration_options
+                        ):
                             # Perform a macro-q learning update for the topmost option.
                             self.macro_q_learn(
                                 self.executing_options_states[-1],
@@ -356,7 +410,9 @@ class OptionAgent:
                                 self.executing_options_states[-1],
                                 self.executing_options_rewards[-1],
                                 self.executing_options[-1],
-                                self.executing_options[-2] if len(self.executing_options) > 1 else None,
+                                self.executing_options[-2]
+                                if len(self.executing_options) > 1
+                                else None,
                                 self.n_step_updates,
                             )
                         self.executing_options_states.pop()
@@ -371,9 +427,9 @@ class OptionAgent:
             return episode_rewards
         else:
             # return test_rewards, active_options
-            return test_rewards
+            return test_rewards, self.evaluation_log
 
-    def test_policy(self, test_length, test_runs=10, allow_exploration=False):
+    def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False):
         test_returns = []
 
         for test_run in range(test_runs):
@@ -385,7 +441,9 @@ class OptionAgent:
                 terminal = False
 
                 while not terminal:
-                    selected_option = self.select_action(state, executing_options, test=not allow_exploration)
+                    selected_option = self.select_action(
+                        state, executing_options, test=not allow_exploration
+                    )
 
                     # Handle if the selected option is a higher-level option.
                     if isinstance(selected_option, BaseOption):
@@ -394,13 +452,30 @@ class OptionAgent:
                     # Handle if the selected option is a primitive action.
                     else:
                         time_steps += 1
-                        next_state, reward, terminal, __ = self.test_env.step(selected_option)
+                        next_state, reward, terminal, __ = self.test_env.step(
+                            selected_option
+                        )
+
+                        # Logging
+                        transition = {
+                            "state": state,
+                            "next_state": next_state,
+                            "reward": reward,
+                            "terminal": terminal,
+                            "active_options": copy(executing_options),
+                        }
+                        for key, value in transition.items():
+                            self.evaluation_log[f"evaluation_{eval_number}"][
+                                f"run_{test_run+1}"
+                            ][key].append(value)
 
                         state = deepcopy(next_state)
                         run_rewards.append(reward)
 
                         # Terminate any options which need terminating this time-step.
-                        while executing_options and self._roll_termination(executing_options[-1], next_state):
+                        while executing_options and self._roll_termination(
+                            executing_options[-1], next_state
+                        ):
                             executing_options.pop()
 
                     # If we have been testing for more than the desired number of time-steps, terminate.
