@@ -118,3 +118,251 @@ class DummyEnv(BaseEnvironment):
     def close(self):
         return
 
+
+def test_macro_q_update_one_step_higher_level():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.0
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1)
+    llo2 = DummyLowerLevelOption(2)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=False,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    _ = agent.run_agent(num_epochs=1, epoch_length=5)
+
+    # Check that the updated value of the higher-level option in the initial state is correct.
+    correct_q_value = (1 - macro_alpha) * (initial_higher_level_option_q_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * -0.1 + gamma**4 * 1.0 + gamma**5 * 0
+    )
+    assert agent.q_table[(hash(1), hash(hlo1))] == correct_q_value
+
+    # Check that the value of taking the higher-level option in other states hasn't been changed (from 0).
+    assert agent.q_table[(hash(0), hash(hlo1))] == 0
+    assert agent.q_table[(hash(2), hash(hlo1))] == 0
+    assert agent.q_table[(hash(3), hash(hlo1))] == 0
+    assert agent.q_table[(hash(4), hash(hlo1))] == 0
+    assert agent.q_table[(hash(5), hash(hlo1))] == 0
+    assert agent.q_table[(hash(6), hash(hlo1))] == 0
+
+
+def test_macro_q_update_n_step_higher_level():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.0
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1)
+    llo2 = DummyLowerLevelOption(2)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=True,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    _ = agent.run_agent(num_epochs=1, epoch_length=5)
+
+    # Check that the updated value of the higher-level option in each state is correct.
+    # State 1.
+    correct_q_value = (1 - macro_alpha) * (initial_higher_level_option_q_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * -0.1 + gamma**4 * 1.0 + gamma**5 * 0
+    )
+    assert agent.q_table[(hash(1), hash(hlo1))] == correct_q_value
+
+    # State 2.
+    correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * 1.0 + gamma**4 * 0
+    )
+    assert agent.q_table[(hash(2), hash(hlo1))] == correct_q_value
+
+    # State 3.
+    correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (-0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0)
+    assert agent.q_table[(hash(3), hash(hlo1))] == correct_q_value
+
+    # State 4.
+    correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (-0.1 + gamma * 1.0 + gamma**2 * 0)
+    assert agent.q_table[(hash(4), hash(hlo1))] == correct_q_value
+
+    # State 5.
+    correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (1.0 + gamma * 0)
+    assert agent.q_table[(hash(5), hash(hlo1))] == correct_q_value
+
+    # State 0 (unvisited).
+    assert agent.q_table[(hash(0), hash(hlo1))] == 0
+
+    # Check that the value of taking the higher-level option in the terminal state hasn't been changed from 0.
+    assert agent.q_table[(hash(6), hash(hlo1))] == 0
+
+
+def test_macro_q_update_one_step_lower_level():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.0
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1)
+    llo2 = DummyLowerLevelOption(2)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=False,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    _ = agent.run_agent(num_epochs=1, epoch_length=5)
+
+    # The lower-level option will terminate in states 3 and 6.
+    # So, we should check that its value has been correctly updated in states 1 and 3.
+    # State 1.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * default_action_value
+    )
+    assert agent.q_table[(hash(1), hash(llo1))] == correct_q_value
+
+    # State 3.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0
+    )
+    assert agent.q_table[(hash(3), hash(llo1))] == correct_q_value
+
+    # State 0 (unvisited).
+    assert agent.q_table[(hash(0), hash(llo1))] == 0
+
+    # Check that the value of taking the lower-level option in other states hasn't been changed (from 0).
+    assert agent.q_table[(hash(2), hash(llo1))] == 0
+    assert agent.q_table[(hash(4), hash(llo1))] == 0
+    assert agent.q_table[(hash(5), hash(llo1))] == 0
+    assert agent.q_table[(hash(6), hash(llo1))] == 0
+
+    # Check that the value of taking the other lower-level option hasn't been changed (from 0).
+    assert agent.q_table[(hash(0), hash(llo2))] == 0
+    assert agent.q_table[(hash(1), hash(llo2))] == 0
+    assert agent.q_table[(hash(2), hash(llo2))] == 0
+    assert agent.q_table[(hash(3), hash(llo2))] == 0
+    assert agent.q_table[(hash(4), hash(llo2))] == 0
+    assert agent.q_table[(hash(5), hash(llo2))] == 0
+    assert agent.q_table[(hash(6), hash(llo2))] == 0
+
+
+def test_macro_q_update_n_step_lower_level():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.0
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1)
+    llo2 = DummyLowerLevelOption(2)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=True,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    _ = agent.run_agent(num_epochs=1, epoch_length=5)
+
+    # The lower-level option will terminate in states 3 and 6.
+    # Transitions 1 -> 2 -> 3.
+    # State 1.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * default_action_value
+    )
+    assert agent.q_table[(hash(1), hash(llo1))] == correct_q_value
+
+    # State 2.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (-0.1 + gamma * default_action_value)
+    assert agent.q_table[(hash(2), hash(llo1))] == correct_q_value
+
+    # Transitions 3 -> 4 -> 5 -> 6.
+    # State 3.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
+        -0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0
+    )
+    assert agent.q_table[(hash(3), hash(llo1))] == correct_q_value
+
+    # State 4.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (-0.1 + gamma * 1.0 + gamma**2 * 0)
+    assert agent.q_table[(hash(4), hash(llo1))] == correct_q_value
+
+    # State 5.
+    correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (1.0 + gamma * 0)
+    assert agent.q_table[(hash(5), hash(llo1))] == correct_q_value
+
+    # State 0 (unvisited).
+    assert agent.q_table[(hash(0), hash(llo1))] == 0
+
+    # Check that the value of taking the lower-level option in the terminal state hasn't been changed from 0.
+    assert agent.q_table[(hash(6), hash(llo1))] == 0
+
+    # Check that the value of taking the other lower-level option hasn't been changed (from 0).
+    assert agent.q_table[(hash(0), hash(llo2))] == 0
+    assert agent.q_table[(hash(1), hash(llo2))] == 0
+    assert agent.q_table[(hash(2), hash(llo2))] == 0
+    assert agent.q_table[(hash(3), hash(llo2))] == 0
+    assert agent.q_table[(hash(4), hash(llo2))] == 0
+    assert agent.q_table[(hash(5), hash(llo2))] == 0
+    assert agent.q_table[(hash(6), hash(llo2))] == 0
+
+
