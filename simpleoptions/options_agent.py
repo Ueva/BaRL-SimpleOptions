@@ -310,7 +310,7 @@ class OptionAgent:
                         "next_state": next_state,
                         "reward": reward,
                         "terminal": terminal,
-                        "active_options": copy(self.executing_options),
+                        "active_options": [str(option) for option in self.executing_options],
                     }
                     for key, value in transition.items():
                         self.training_log[key].append(value)
@@ -419,7 +419,7 @@ class OptionAgent:
                             "next_state": next_state,
                             "reward": reward,
                             "terminal": terminal,
-                            "active_options": copy(executing_options),
+                            "active_options": [str(option) for option in executing_options],
                         }
                         for key, value in transition.items():
                             self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
