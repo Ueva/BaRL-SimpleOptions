@@ -1,6 +1,6 @@
 import pytest
 
-from simpleoptions import BaseOption,OptionAgent
+from simpleoptions import BaseOption, OptionAgent
 
 
 class DummyOption(BaseOption):
