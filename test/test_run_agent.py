@@ -7,9 +7,10 @@ from simpleoptions import OptionAgent, BaseOption, BaseEnvironment
 
 
 class DummyLowerLevelOption(BaseOption):
-    def __init__(self, id: int):
+    def __init__(self, id: int, action: int):
         super().__init__()
         self.id = id
+        self.action = action
 
     def initiation(self, state):
         return True
@@ -30,7 +31,11 @@ class DummyLowerLevelOption(BaseOption):
         return hash(str(self))
 
     def __eq__(self, other_option):
-        return isinstance(other_option, DummyLowerLevelOption)
+        return (
+            isinstance(other_option, DummyLowerLevelOption)
+            and self.id == other_option.id
+            and self.action == other_option.action
+        )
 
     def __ne__(self, other_option: object):
         return not self == other_option
@@ -130,8 +135,8 @@ def test_macro_q_update_one_step_higher_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1)
-    llo2 = DummyLowerLevelOption(2)
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
     hlo1 = DummyHigherLevelOption(1, llo1)
     env.set_options([llo1, llo2, hlo1])
 
@@ -176,8 +181,8 @@ def test_macro_q_update_n_step_higher_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1)
-    llo2 = DummyLowerLevelOption(2)
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
     hlo1 = DummyHigherLevelOption(1, llo1)
     env.set_options([llo1, llo2, hlo1])
 
@@ -239,8 +244,8 @@ def test_macro_q_update_one_step_lower_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1)
-    llo2 = DummyLowerLevelOption(2)
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
     hlo1 = DummyHigherLevelOption(1, llo1)
     env.set_options([llo1, llo2, hlo1])
 
@@ -303,8 +308,8 @@ def test_macro_q_update_n_step_lower_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1)
-    llo2 = DummyLowerLevelOption(2)
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
     hlo1 = DummyHigherLevelOption(1, llo1)
     env.set_options([llo1, llo2, hlo1])
 
