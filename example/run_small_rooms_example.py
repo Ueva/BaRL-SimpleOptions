@@ -10,7 +10,6 @@ from small_rooms_env import SmallRoomsEnv
 from small_rooms_doorway_option import DoorwayOption
 
 if __name__ == "__main__":
-
     num_agents = 10
 
     results = []

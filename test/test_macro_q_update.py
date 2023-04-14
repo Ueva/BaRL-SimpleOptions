@@ -17,7 +17,7 @@ class DummyOption(BaseOption):
     def initiation(self, state):
         return True
 
-    def policy(self, state):
+    def policy(self, state, test=False):
         return 1
 
     def termination(self, state):
@@ -104,7 +104,12 @@ def test_three_step_macro_q_update_1():
     state_trajectory = ["state_1", "state_2", "state_3", "state_4"]
     reward_trajectory = [2, 3, 4]
     option = DummyOption("test_option_1")
-    initial_values = {"state_1, option": 0, "state_2, option": 0, "state_3, option": 0, "state_4, 1": 0}
+    initial_values = {
+        "state_1, option": 0,
+        "state_2, option": 0,
+        "state_3, option": 0,
+        "state_4, 1": 0,
+    }
     alpha = 0.2
     gamma = 0.9
 
@@ -145,7 +150,12 @@ def test_three_step_macro_q_update_2():
     state_trajectory = ["state_1", "state_2", "state_3", "state_4"]
     reward_trajectory = [2, 3, 4]
     option = DummyOption("test_option_1")
-    initial_values = {"state_1, option": 4, "state_2, option": 5, "state_3, option": 6, "state_4, 1": 7}
+    initial_values = {
+        "state_1, option": 4,
+        "state_2, option": 5,
+        "state_3, option": 6,
+        "state_4, 1": 7,
+    }
     alpha = 0.2
     gamma = 0.9
 

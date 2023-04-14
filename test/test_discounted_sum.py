@@ -2,6 +2,7 @@ import pytest
 
 from simpleoptions import OptionAgent
 
+
 # Test single reward.
 def test_discounted_reward_single():
     rewards = [1]

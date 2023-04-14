@@ -19,7 +19,7 @@ class DummyOption(BaseOption):
     def initiation(self, state):
         return True
 
-    def policy(self, state):
+    def policy(self, state, test=False):
         return self.action
 
     def termination(self, state):
@@ -69,7 +69,11 @@ def test_one_step_intra_option_update_1():
     option_2 = DummyOption("test_option_2", lower_level_option, "state_2")
 
     # Initialise an OptionAgent (note that initial q-values for all states are zero by default).
-    agent = OptionAgent(env=DummyEnv([option_1, option_2, lower_level_option]), macro_alpha=alpha, gamma=gamma)
+    agent = OptionAgent(
+        env=DummyEnv([option_1, option_2, lower_level_option]),
+        macro_alpha=alpha,
+        gamma=gamma,
+    )
 
     # First, perform a macro-q update for option_1. Then, perform an intra-option update for
     # option_1. This should result in both option_1 and option_2 having the same q-value in
@@ -99,7 +103,9 @@ def test_one_step_intra_option_update_2():
 
     # Initialise an OptionAgent (note that initial q-values for all states are zero by default).
     agent = OptionAgent(
-        env=DummyEnv([option_1, option_2, lower_level_option_1, lower_level_option_2]), macro_alpha=alpha, gamma=gamma
+        env=DummyEnv([option_1, option_2, lower_level_option_1, lower_level_option_2]),
+        macro_alpha=alpha,
+        gamma=gamma,
     )
 
     # First, perform a macro-q update for option_1. Then, perform an intra-option update for

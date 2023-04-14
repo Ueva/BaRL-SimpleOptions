@@ -56,7 +56,11 @@ class OptionAgent:
         self.test_env = test_env if test_env is not None else None
 
     def macro_q_learn(
-        self, state_trajectory: List[Hashable], rewards: List[float], option: "BaseOption", n_step=False
+        self,
+        state_trajectory: List[Hashable],
+        rewards: List[float],
+        option: "BaseOption",
+        n_step=False,
     ) -> None:
         """
         Performs Macro Q-Learning updates along the given trajectory for the given Option.
@@ -226,10 +230,15 @@ class OptionAgent:
                 ]
         # If we are currently following an option's policy, return what it selects.
         else:
-            return executing_options[-1].policy(state)
+            return executing_options[-1].policy(state, test)
 
     def run_agent(
-        self, num_epochs, epoch_length, render_interval: int = 0, test_interval: int = 0, test_length: int = 0
+        self,
+        num_epochs,
+        epoch_length,
+        render_interval: int = 0,
+        test_interval: int = 0,
+        test_length: int = 0,
     ) -> List[float]:
         """
         Trains the agent for a given number of episodes.
