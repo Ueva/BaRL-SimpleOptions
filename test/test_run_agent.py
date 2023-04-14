@@ -3,11 +3,11 @@ import pytest
 from pytest import approx
 from typing import List
 
-from simpleoptions import OptionAgent, BaseOption, BaseEnvironment
+from simpleoptions import OptionAgent, BaseOption, BaseEnvironment, PrimitiveOption
 
 
 class DummyLowerLevelOption(BaseOption):
-    def __init__(self, id: int, action: int):
+    def __init__(self, id: int, action: PrimitiveOption):
         super().__init__()
         self.id = id
         self.action = action
@@ -16,7 +16,7 @@ class DummyLowerLevelOption(BaseOption):
         return True
 
     def policy(self, state, test=False):
-        return 1
+        return self.action
 
     def termination(self, state):
         return state in {3, 6}
@@ -31,11 +31,7 @@ class DummyLowerLevelOption(BaseOption):
         return hash(str(self))
 
     def __eq__(self, other_option):
-        return (
-            isinstance(other_option, DummyLowerLevelOption)
-            and self.id == other_option.id
-            and self.action == other_option.action
-        )
+        return isinstance(other_option, DummyLowerLevelOption) and self.id == other_option.id
 
     def __ne__(self, other_option: object):
         return not self == other_option
@@ -181,10 +177,12 @@ def test_macro_q_update_n_step_higher_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1, 1)
-    llo2 = DummyLowerLevelOption(2, 1)
+    p0 = PrimitiveOption(0, env)
+    p1 = PrimitiveOption(1, env)
+    llo1 = DummyLowerLevelOption(1, p1)
+    llo2 = DummyLowerLevelOption(2, p1)
     hlo1 = DummyHigherLevelOption(1, llo1)
-    env.set_options([llo1, llo2, hlo1])
+    env.set_options([p0, p1, llo1, llo2, hlo1])
 
     # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
     # state, to ensure that it is always chosen (notice that we have disabled exploration).
@@ -244,10 +242,12 @@ def test_macro_q_update_one_step_lower_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1, 1)
-    llo2 = DummyLowerLevelOption(2, 1)
+    p0 = PrimitiveOption(0, env)
+    p1 = PrimitiveOption(1, env)
+    llo1 = DummyLowerLevelOption(1, p1)
+    llo2 = DummyLowerLevelOption(2, p1)
     hlo1 = DummyHigherLevelOption(1, llo1)
-    env.set_options([llo1, llo2, hlo1])
+    env.set_options([p0, p1, llo1, llo2, hlo1])
 
     # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
     # state, to ensure that it is always chosen (notice that we have disabled exploration).
@@ -308,10 +308,12 @@ def test_macro_q_update_n_step_lower_level():
 
     # Initialise env and add the dummy options to the list of available options.
     env = DummyEnv()
-    llo1 = DummyLowerLevelOption(1, 1)
-    llo2 = DummyLowerLevelOption(2, 1)
+    p0 = PrimitiveOption(0, env)
+    p1 = PrimitiveOption(1, env)
+    llo1 = DummyLowerLevelOption(1, p1)
+    llo2 = DummyLowerLevelOption(2, p1)
     hlo1 = DummyHigherLevelOption(1, llo1)
-    env.set_options([llo1, llo2, hlo1])
+    env.set_options([p0, p1, llo1, llo2, hlo1])
 
     # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
     # state, to ensure that it is always chosen (notice that we have disabled exploration).
