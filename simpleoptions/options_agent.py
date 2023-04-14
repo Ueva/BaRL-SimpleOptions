@@ -6,7 +6,7 @@ import numpy as np
 
 from copy import copy, deepcopy
 from collections import defaultdict
-from typing import Hashable, List, Union
+from typing import Tuple, Hashable, List, Union, DefaultDict
 
 from simpleoptions.option import BaseOption
 from simpleoptions.environment import BaseEnvironment
@@ -55,9 +55,11 @@ class OptionAgent:
         self.env = env
         self.test_env = test_env if test_env is not None else None
 
-        self.evaluation_log = defaultdict(
-            lambda: defaultdict(lambda: defaultdict(list))
-        )  # {evaluation_number: {evaluation_run: {log_data: []}}}
+        self.evaluation_log = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+        # {evaluation_number: {evaluation_run: {log_data: []}}}
+
+        self.training_log = defaultdict(list)
+        # {log_data: []}}}
 
     def macro_q_learn(
         self,
@@ -244,7 +246,7 @@ class OptionAgent:
         test_interval: int = 0,
         test_length: int = 0,
         test_runs: int = 10,
-    ) -> List[float]:
+    ) -> Tuple[DefaultDict, DefaultDict | None]:
         """
         Trains the agent for a given number of episodes.
 
@@ -256,7 +258,7 @@ class OptionAgent:
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
 
         Returns:
-            List[float]: A list containing floats representing the rewards earned by the agent each time-step.
+            Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
         """
 
         # Set the time-step limit.
@@ -301,6 +303,17 @@ class OptionAgent:
                 else:
                     time_steps += 1
                     next_state, reward, terminal, __ = self.env.step(selected_option)
+
+                    # Logging
+                    transition = {
+                        "state": state,
+                        "next_state": next_state,
+                        "reward": reward,
+                        "terminal": terminal,
+                        "active_options": copy(self.executing_options),
+                    }
+                    for key, value in transition.items():
+                        self.training_log[key].append(value)
 
                     # Render, if we need to.
                     if render_interval > 0 and time_steps % render_interval == 0:
@@ -377,16 +390,9 @@ class OptionAgent:
             episode += 1
         gc.collect()
 
-        if test_interval == 0:
-            # return episode_rewards, active_options
-            return episode_rewards
-        else:
-            # return test_rewards, active_options
-            return test_rewards, self.evaluation_log
+        return self.training_log, self.evaluation_log if self.evaluation_log else None
 
     def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False):
-        test_returns = []
-
         for test_run in range(test_runs):
             time_steps = 0
             run_rewards = []
@@ -433,9 +439,6 @@ class OptionAgent:
                     if terminal:
                         while len(executing_options) > 0:
                             executing_options.pop()
-
-            test_returns.append(sum(run_rewards))
-        return statistics.mean(test_returns)
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:
         # Computes the discounted reward given an ordered list of rewards, and a discount factor.
