@@ -1,5 +1,6 @@
 import pytest
 
+from pytest import approx
 from typing import List
 
 from simpleoptions import OptionAgent, BaseOption, BaseEnvironment
@@ -154,7 +155,7 @@ def test_macro_q_update_one_step_higher_level():
     correct_q_value = (1 - macro_alpha) * (initial_higher_level_option_q_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * -0.1 + gamma**4 * 1.0 + gamma**5 * 0
     )
-    assert agent.q_table[(hash(1), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(1), hash(hlo1))] == approx(correct_q_value)
 
     # Check that the value of taking the higher-level option in other states hasn't been changed (from 0).
     assert agent.q_table[(hash(0), hash(hlo1))] == 0
@@ -201,25 +202,25 @@ def test_macro_q_update_n_step_higher_level():
     correct_q_value = (1 - macro_alpha) * (initial_higher_level_option_q_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * -0.1 + gamma**4 * 1.0 + gamma**5 * 0
     )
-    assert agent.q_table[(hash(1), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(1), hash(hlo1))] == approx(correct_q_value)
 
     # State 2.
     correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * -0.1 + gamma**3 * 1.0 + gamma**4 * 0
     )
-    assert agent.q_table[(hash(2), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(2), hash(hlo1))] == approx(correct_q_value)
 
     # State 3.
     correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (-0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0)
-    assert agent.q_table[(hash(3), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(3), hash(hlo1))] == approx(correct_q_value)
 
     # State 4.
     correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (-0.1 + gamma * 1.0 + gamma**2 * 0)
-    assert agent.q_table[(hash(4), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(4), hash(hlo1))] == approx(correct_q_value)
 
     # State 5.
     correct_q_value = (1 - macro_alpha) * (0) + macro_alpha * (1.0 + gamma * 0)
-    assert agent.q_table[(hash(5), hash(hlo1))] == correct_q_value
+    assert agent.q_table[(hash(5), hash(hlo1))] == approx(correct_q_value)
 
     # State 0 (unvisited).
     assert agent.q_table[(hash(0), hash(hlo1))] == 0
@@ -265,13 +266,13 @@ def test_macro_q_update_one_step_lower_level():
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * default_action_value
     )
-    assert agent.q_table[(hash(1), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(1), hash(llo1))] == approx(correct_q_value)
 
     # State 3.
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0
     )
-    assert agent.q_table[(hash(3), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(3), hash(llo1))] == approx(correct_q_value)
 
     # State 0 (unvisited).
     assert agent.q_table[(hash(0), hash(llo1))] == 0
@@ -329,26 +330,26 @@ def test_macro_q_update_n_step_lower_level():
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * default_action_value
     )
-    assert agent.q_table[(hash(1), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(1), hash(llo1))] == approx(correct_q_value)
 
     # State 2.
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (-0.1 + gamma * default_action_value)
-    assert agent.q_table[(hash(2), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(2), hash(llo1))] == approx(correct_q_value)
 
     # Transitions 3 -> 4 -> 5 -> 6.
     # State 3.
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (
         -0.1 + gamma * -0.1 + gamma**2 * 1.0 + gamma**3 * 0
     )
-    assert agent.q_table[(hash(3), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(3), hash(llo1))] == approx(correct_q_value)
 
     # State 4.
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (-0.1 + gamma * 1.0 + gamma**2 * 0)
-    assert agent.q_table[(hash(4), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(4), hash(llo1))] == approx(correct_q_value)
 
     # State 5.
     correct_q_value = (1 - macro_alpha) * (default_action_value) + macro_alpha * (1.0 + gamma * 0)
-    assert agent.q_table[(hash(5), hash(llo1))] == correct_q_value
+    assert agent.q_table[(hash(5), hash(llo1))] == approx(correct_q_value)
 
     # State 0 (unvisited).
     assert agent.q_table[(hash(0), hash(llo1))] == 0
