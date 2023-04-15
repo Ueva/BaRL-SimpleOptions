@@ -71,10 +71,6 @@ class OptionAgent:
             option (Option): The option to perform an update for.
             n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
-        state_trajectory = deepcopy(state_trajectory)
-        rewards = deepcopy(rewards)
-        option = option
-
         # For Debuging - saves info about long-running options to a file.
         if (len(state_trajectory) > 500) and hasattr(option, "hierarchy_level"):
             with open("long_running_options.txt", "a+") as f:
@@ -93,14 +89,13 @@ class OptionAgent:
 
         termination_state = state_trajectory[-1]
 
-        while len(state_trajectory) > 1:
-            num_rewards = len(rewards)
-            initiation_state = state_trajectory[0]
+        for i in range(len(state_trajectory) - 1):
+            initiation_state = state_trajectory[i]
 
             old_value = self.q_table[(hash(initiation_state), hash(option))]
 
             # Compute discounted sum of rewards.
-            discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
+            discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
 
             # Get Q-Values for Next State.
             if not self.env.is_state_terminal(termination_state):
@@ -114,11 +109,8 @@ class OptionAgent:
 
             # Perform Macro-Q Update
             self.q_table[(hash(initiation_state), hash(option))] = old_value + self.macro_q_alpha * (
-                discounted_sum_of_rewards + math.pow(self.gamma, len(rewards)) * max(q_values) - old_value
+                discounted_sum_of_rewards + math.pow(self.gamma, len(rewards) - i) * max(q_values) - old_value
             )
-
-            state_trajectory.pop(0)
-            rewards.pop(0)
 
             # If we're not performing n-step updates, exit after the first iteration.
             if not n_step:
