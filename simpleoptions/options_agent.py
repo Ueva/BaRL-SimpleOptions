@@ -4,7 +4,7 @@ import random
 import statistics
 import numpy as np
 
-from copy import copy, deepcopy
+from copy import copy
 from collections import defaultdict
 from typing import Hashable, List, Union
 

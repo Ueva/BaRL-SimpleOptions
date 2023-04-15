@@ -26,8 +26,14 @@ class PrimitiveOption(BaseOption):
         self.env = env
         self.action = action
 
+        # Constructs the initiation set for this primitive option.
+        self.initiation_set = set()
+        for state in self.env.get_state_space():
+            if self.action in self.env.get_available_actions(state=state):
+                self.initiation_set.add(state)
+
     def initiation(self, state: Hashable) -> bool:
-        return self.action in self.env.get_available_actions(state)
+        return self.action in self.initiation_set
 
     def policy(self, state: Hashable, test: bool = False) -> Hashable:
         return self.action
