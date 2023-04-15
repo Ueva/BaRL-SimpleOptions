@@ -274,7 +274,7 @@ class OptionAgent:
                 # Handle if the selected option is a higher-level option.
                 if isinstance(selected_option, BaseOption):
                     self.executing_options.append(copy(selected_option))
-                    self.executing_options_states.append([deepcopy(state)])
+                    self.executing_options_states.append([state])
                     self.executing_options_rewards.append([])
 
                 # Handle if the selected option is a primitive action.
@@ -286,12 +286,12 @@ class OptionAgent:
                     if render_interval > 0 and time_steps % render_interval == 0:
                         self.env.render()
 
-                    state = deepcopy(next_state)
+                    state = next_state
                     episode_rewards[episode].append(reward)
                     # active_options.append(len(self.executing_options))
 
                     for i in range(len(self.executing_options)):
-                        self.executing_options_states[i].append(deepcopy(next_state))
+                        self.executing_options_states[i].append(next_state)
                         self.executing_options_rewards[i].append(reward)
 
                     # Terminate any options which need terminating this time-step.
@@ -381,7 +381,7 @@ class OptionAgent:
                         time_steps += 1
                         next_state, reward, terminal, __ = self.test_env.step(selected_option)
 
-                        state = deepcopy(next_state)
+                        state = next_state
                         run_rewards.append(reward)
 
                         # Terminate any options which need terminating this time-step.
