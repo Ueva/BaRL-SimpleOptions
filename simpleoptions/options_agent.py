@@ -134,27 +134,23 @@ class OptionAgent:
             higher_level_option (Union[None, optional): The option whose policy chose the executed_option. Defaults to None, indicating that the option was executed under the base policy.
             n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
-        state_trajectory = deepcopy(state_trajectory)
-        rewards = deepcopy(rewards)
-        executed_option = executed_option
 
         termination_state = state_trajectory[-1]
 
-        while len(state_trajectory) > 1:
-            num_rewards = len(rewards)
-            initiation_state = state_trajectory[0]
+        for i in range(len(state_trajectory) - 1):
+            initiation_state = state_trajectory[i]
 
             # We perform an intra-option update for all other options which select executed_option in this state.
             for other_option in self.env.get_available_options(initiation_state):
                 if (
                     (hash(other_option) != hash(higher_level_option) or higher_level_option is None)
-                    and other_option.initiation(initiation_state)
                     and hash(other_option.policy(initiation_state)) == hash(executed_option)
+                    # and other_option.initiation(initiation_state) # This check is already handled in env.get_available_options!
                 ):
                     old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
-                    discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
+                    discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
 
                     if not self.env.is_state_terminal(termination_state):
                         # If the option terminates, we consider the value of the next best option.
@@ -176,12 +172,9 @@ class OptionAgent:
                     # Perform Intra-Option Update.
                     self.q_table[(hash(initiation_state), hash(other_option))] = old_value + self.intra_option_alpha * (
                         discounted_sum_of_rewards
-                        + math.pow(self.gamma, len(rewards)) * (next_q_continues + next_q_terminates)
+                        + math.pow(self.gamma, len(rewards) - i) * (next_q_continues + next_q_terminates)
                         - old_value
                     )
-
-            state_trajectory.pop(0)
-            rewards.pop(0)
 
             # If we're not performing n-step updates, exit after the first iteration.
             if not n_step:
