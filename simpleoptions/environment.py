@@ -1,7 +1,7 @@
 import copy
 import networkx as nx
 
-from typing import List
+from typing import List, Set
 from typing import Hashable, Tuple
 from abc import ABC, abstractmethod
 
@@ -75,13 +75,23 @@ class BaseEnvironment(ABC):
         pass
 
     @abstractmethod
-    def get_action_space(self) -> List[Hashable]:
+    def get_state_space(self) -> Set[Hashable]:
         """
-        Returns a list containing the set of primitive actions available in this environment. A subset of
+        Returns a set containing all of the possible states in this environment.
+
+        Returns:
+            Set[Hashable]: All possible states in this environment.
+        """
+        pass
+
+    @abstractmethod
+    def get_action_space(self) -> Set[Hashable]:
+        """
+        Returns a set containing all of the primitive actions available in this environment. A subset of
         the actions in this list will be available in each individual state.
 
         Returns:
-            List[Hashable]: All possible primitive actions available in this environment.
+            Set[Hashable]: All possible primitive actions available in this environment.
 
         See Also:
             BaseEnvironment.get_available_actions

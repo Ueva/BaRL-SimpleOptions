@@ -91,8 +91,11 @@ class DummyEnv(BaseEnvironment):
 
         return self.state, reward, terminal, {}
 
+    def get_state_space(self):
+        return {0, 1, 2, 3, 4, 5, 6}
+
     def get_action_space(self):
-        return [0, 1]
+        return {0, 1}
 
     def get_available_actions(self, state=None):
         return self.get_action_space()

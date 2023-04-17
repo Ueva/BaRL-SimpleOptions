@@ -4,7 +4,7 @@ import random
 import statistics
 import numpy as np
 
-from copy import copy, deepcopy
+from copy import copy
 from collections import defaultdict
 from typing import Hashable, List, Union
 
@@ -71,10 +71,6 @@ class OptionAgent:
             option (Option): The option to perform an update for.
             n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
-        state_trajectory = deepcopy(state_trajectory)
-        rewards = deepcopy(rewards)
-        option = option
-
         # For Debuging - saves info about long-running options to a file.
         if (len(state_trajectory) > 500) and hasattr(option, "hierarchy_level"):
             with open("long_running_options.txt", "a+") as f:
@@ -93,14 +89,13 @@ class OptionAgent:
 
         termination_state = state_trajectory[-1]
 
-        while len(state_trajectory) > 1:
-            num_rewards = len(rewards)
-            initiation_state = state_trajectory[0]
+        for i in range(len(state_trajectory) - 1):
+            initiation_state = state_trajectory[i]
 
             old_value = self.q_table[(hash(initiation_state), hash(option))]
 
             # Compute discounted sum of rewards.
-            discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
+            discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
 
             # Get Q-Values for Next State.
             if not self.env.is_state_terminal(termination_state):
@@ -114,11 +109,8 @@ class OptionAgent:
 
             # Perform Macro-Q Update
             self.q_table[(hash(initiation_state), hash(option))] = old_value + self.macro_q_alpha * (
-                discounted_sum_of_rewards + math.pow(self.gamma, len(rewards)) * max(q_values) - old_value
+                discounted_sum_of_rewards + math.pow(self.gamma, len(rewards) - i) * max(q_values) - old_value
             )
-
-            state_trajectory.pop(0)
-            rewards.pop(0)
 
             # If we're not performing n-step updates, exit after the first iteration.
             if not n_step:
@@ -142,27 +134,23 @@ class OptionAgent:
             higher_level_option (Union[None, optional): The option whose policy chose the executed_option. Defaults to None, indicating that the option was executed under the base policy.
             n_step (bool): Whether or not to perform n-step updates. Defaults to False, performing one-step updates.
         """
-        state_trajectory = deepcopy(state_trajectory)
-        rewards = deepcopy(rewards)
-        executed_option = executed_option
 
         termination_state = state_trajectory[-1]
 
-        while len(state_trajectory) > 1:
-            num_rewards = len(rewards)
-            initiation_state = state_trajectory[0]
+        for i in range(len(state_trajectory) - 1):
+            initiation_state = state_trajectory[i]
 
             # We perform an intra-option update for all other options which select executed_option in this state.
             for other_option in self.env.get_available_options(initiation_state):
                 if (
                     (hash(other_option) != hash(higher_level_option) or higher_level_option is None)
-                    and other_option.initiation(initiation_state)
                     and hash(other_option.policy(initiation_state)) == hash(executed_option)
+                    # and other_option.initiation(initiation_state) # This check is already handled in env.get_available_options!
                 ):
                     old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
-                    discounted_sum_of_rewards = self._discounted_return(rewards, self.gamma)
+                    discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
 
                     if not self.env.is_state_terminal(termination_state):
                         # If the option terminates, we consider the value of the next best option.
@@ -184,12 +172,9 @@ class OptionAgent:
                     # Perform Intra-Option Update.
                     self.q_table[(hash(initiation_state), hash(other_option))] = old_value + self.intra_option_alpha * (
                         discounted_sum_of_rewards
-                        + math.pow(self.gamma, len(rewards)) * (next_q_continues + next_q_terminates)
+                        + math.pow(self.gamma, len(rewards) - i) * (next_q_continues + next_q_terminates)
                         - old_value
                     )
-
-            state_trajectory.pop(0)
-            rewards.pop(0)
 
             # If we're not performing n-step updates, exit after the first iteration.
             if not n_step:
@@ -289,7 +274,7 @@ class OptionAgent:
                 # Handle if the selected option is a higher-level option.
                 if isinstance(selected_option, BaseOption):
                     self.executing_options.append(copy(selected_option))
-                    self.executing_options_states.append([deepcopy(state)])
+                    self.executing_options_states.append([state])
                     self.executing_options_rewards.append([])
 
                 # Handle if the selected option is a primitive action.
@@ -301,12 +286,12 @@ class OptionAgent:
                     if render_interval > 0 and time_steps % render_interval == 0:
                         self.env.render()
 
-                    state = deepcopy(next_state)
+                    state = next_state
                     episode_rewards[episode].append(reward)
                     # active_options.append(len(self.executing_options))
 
                     for i in range(len(self.executing_options)):
-                        self.executing_options_states[i].append(deepcopy(next_state))
+                        self.executing_options_states[i].append(next_state)
                         self.executing_options_rewards[i].append(reward)
 
                     # Terminate any options which need terminating this time-step.
@@ -396,7 +381,7 @@ class OptionAgent:
                         time_steps += 1
                         next_state, reward, terminal, __ = self.test_env.step(selected_option)
 
-                        state = deepcopy(next_state)
+                        state = next_state
                         run_rewards.append(reward)
 
                         # Terminate any options which need terminating this time-step.
