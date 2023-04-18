@@ -33,7 +33,7 @@ class PrimitiveOption(BaseOption):
                 self.initiation_set.add(state)
 
     def initiation(self, state: Hashable) -> bool:
-        return self.action in self.initiation_set
+        return state in self.initiation_set
 
     def policy(self, state: Hashable, test: bool = False) -> Hashable:
         return self.action
