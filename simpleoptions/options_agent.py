@@ -381,6 +381,8 @@ class OptionAgent:
             return training_rewards, evaluation_rewards if evaluation_rewards else None
 
     def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False, verbose_logging=True):
+        test_returns = []
+
         for test_run in range(test_runs):
             time_steps = 0
             run_rewards = []
@@ -428,6 +430,9 @@ class OptionAgent:
                     if terminal:
                         while len(executing_options) > 0:
                             executing_options.pop()
+
+            test_returns.append(sum(run_rewards))
+        return statistics.mean(run_rewards)
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:
         # Computes the discounted reward given an ordered list of rewards, and a discount factor.
