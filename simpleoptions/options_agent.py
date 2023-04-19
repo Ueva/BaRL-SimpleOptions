@@ -231,6 +231,7 @@ class OptionAgent:
         test_interval: int = 0,
         test_length: int = 0,
         test_runs: int = 10,
+        verbose_logging: bool = True,
     ) -> Tuple[DefaultDict, DefaultDict | None]:
         """
         Trains the agent for a given number of episodes.
@@ -241,6 +242,8 @@ class OptionAgent:
             render_interval (int, optional): How often (in time-steps) to call the environement's render function, in time-steps. Zero by default, disabling rendering.
             test_interval (int, optional): How often (in epochs) to evaluate the greedy policy learned by the agent. Zero by default, in which case training performance is returned.
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
+            test_runs (int, optional): How many test runs to perform each test_interval.
+            verbose_logging (bool, optional): Whether to log all information about each time-step, instead of just rewards. Defaults to True.
 
         Returns:
             Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
@@ -252,22 +255,22 @@ class OptionAgent:
         # If we are testing the greedy policy separately, make a separate copy of
         # the environment to use for those tests. Also initialise variables for
         # tracking test performance.
+        training_rewards = [None for _ in range(num_time_steps)]
+
         if test_interval > 0:
             test_interval_time_steps = test_interval * epoch_length
-            test_rewards = []
+            evaluation_rewards = [None for _ in range(num_time_steps // test_interval_time_steps)]
 
             # Check that a test environment has been provided - if not, raise an error.
             if self.test_env is None:
                 raise RuntimeError("No test_env has been provided specified.")
+        else:
+            evaluation_rewards = []
 
-        episode_rewards = []
-        # active_options = []
         episode = 0
         time_steps = 0
 
         while time_steps < num_time_steps:
-            episode_rewards.append([])
-
             # Initialise initial state variables.
             state = self.env.reset()
             terminal = False
@@ -290,23 +293,23 @@ class OptionAgent:
                     next_state, reward, terminal, __ = self.env.step(selected_option)
 
                     # Logging
-                    transition = {
-                        "state": state,
-                        "next_state": next_state,
-                        "reward": reward,
-                        "terminal": terminal,
-                        "active_options": [str(option) for option in self.executing_options],
-                    }
-                    for key, value in transition.items():
-                        self.training_log[key].append(value)
+                    training_rewards[time_steps - 1] = reward
+                    if verbose_logging:
+                        transition = {
+                            "state": state,
+                            "next_state": next_state,
+                            "reward": reward,
+                            "terminal": terminal,
+                            "active_options": [str(option) for option in self.executing_options],
+                        }
+                        for key, value in transition.items():
+                            self.training_log[key].append(value)
 
                     # Render, if we need to.
                     if render_interval > 0 and time_steps % render_interval == 0:
                         self.env.render()
 
                     state = next_state
-                    episode_rewards[episode].append(reward)
-                    # active_options.append(len(self.executing_options))
 
                     for i in range(len(self.executing_options)):
                         self.executing_options_states[i].append(next_state)
@@ -337,16 +340,16 @@ class OptionAgent:
                     # If we are testing the greedy policy learned by the agent separately,
                     # and it is time to test it, then test it.
                     if test_interval > 0 and time_steps % test_interval_time_steps == 0:
-                        test_rewards.append(
-                            self.test_policy(
-                                test_length,
-                                test_runs,
-                                time_steps // test_interval_time_steps,
-                            )
+                        evaluation_rewards[(time_steps - 1) // test_interval_time_steps] = self.test_policy(
+                            test_length,
+                            test_runs,
+                            time_steps // test_interval_time_steps,
+                            allow_exploration=False,
+                            verbose_logging=verbose_logging,
                         )
 
                 # If we have been training for more than the desired number of time-steps, terminate.
-                if time_steps > num_time_steps:
+                if time_steps >= num_time_steps:
                     terminal = True
 
                 # Handle if the current state is terminal.
@@ -375,12 +378,21 @@ class OptionAgent:
             episode += 1
         gc.collect()
 
-        return self.training_log, self.evaluation_log if self.evaluation_log else None
+        if verbose_logging:
+            training_log = self.training_log
+            evaluation_log = self.evaluation_log if self.evaluation_log else None
+            return training_log, evaluation_log
+        else:
+            training_log = [sum(training_rewards[i * epoch_length : (i + 1) * epoch_length]) for i in range(num_epochs)]
+            evaluation_log = evaluation_rewards if evaluation_rewards else None
+            return training_log, evaluation_log
 
-    def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False):
+    def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False, verbose_logging=True):
+        test_returns = [None for _ in range(test_runs)]
+
         for test_run in range(test_runs):
             time_steps = 0
-            run_rewards = []
+            run_rewards = [None for _ in range(test_length)]
             while time_steps < test_length:
                 state = self.test_env.reset()
                 executing_options = []
@@ -399,31 +411,35 @@ class OptionAgent:
                         next_state, reward, terminal, __ = self.test_env.step(selected_option)
 
                         # Logging
-                        transition = {
-                            "state": state,
-                            "next_state": next_state,
-                            "reward": reward,
-                            "terminal": terminal,
-                            "active_options": [str(option) for option in executing_options],
-                        }
-                        for key, value in transition.items():
-                            self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
+                        run_rewards[time_steps - 1] = reward
+                        if verbose_logging:
+                            transition = {
+                                "state": state,
+                                "next_state": next_state,
+                                "reward": reward,
+                                "terminal": terminal,
+                                "active_options": [str(option) for option in executing_options],
+                            }
+                            for key, value in transition.items():
+                                self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
 
                         state = next_state
-                        run_rewards.append(reward)
 
                         # Terminate any options which need terminating this time-step.
                         while executing_options and self._roll_termination(executing_options[-1], next_state):
                             executing_options.pop()
 
                     # If we have been testing for more than the desired number of time-steps, terminate.
-                    if time_steps > test_length:
+                    if time_steps >= test_length:
                         terminal = True
 
                     # Handle if the current state is terminal.
                     if terminal:
                         while len(executing_options) > 0:
                             executing_options.pop()
+
+            test_returns[test_run] = sum(run_rewards)
+        return statistics.mean(test_returns)
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:
         # Computes the discounted reward given an ordered list of rewards, and a discount factor.

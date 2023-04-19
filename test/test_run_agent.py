@@ -668,3 +668,80 @@ def test_intra_option_update_n_step_lower_level():
     assert agent.q_table[(hash(4), hash(llo3))] == 0
     assert agent.q_table[(hash(5), hash(llo3))] == 0
     assert agent.q_table[(hash(6), hash(llo3))] == 0
+
+
+def test_training_rewards_length():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.5
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    test_env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+    test_env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        test_env=test_env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=False,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    training_rewards, _ = agent.run_agent(
+        num_epochs=1, epoch_length=5, test_interval=1, test_length=5, verbose_logging=False
+    )
+
+    assert len(training_rewards) == 1
+
+
+def test_evaluation_rewards_length():
+    epsilon = 0.0
+    macro_alpha = 0.5
+    intra_option_alpha = 0.5
+    gamma = 0.9
+    default_action_value = 0.0
+    initial_higher_level_option_q_value = 1.0
+
+    # Initialise env and add the dummy options to the list of available options.
+    env = DummyEnv()
+    test_env = DummyEnv()
+    llo1 = DummyLowerLevelOption(1, 1)
+    llo2 = DummyLowerLevelOption(2, 1)
+    hlo1 = DummyHigherLevelOption(1, llo1)
+    env.set_options([llo1, llo2, hlo1])
+    test_env.set_options([llo1, llo2, hlo1])
+
+    # Initialise agent and set the q-value of the higher-level option to 1.0 in the initial
+    # state, to ensure that it is always chosen (notice that we have disabled exploration).
+    agent = OptionAgent(
+        env=env,
+        test_env=test_env,
+        epsilon=epsilon,
+        macro_alpha=macro_alpha,
+        intra_option_alpha=intra_option_alpha,
+        gamma=gamma,
+        n_step_updates=False,
+        default_action_value=default_action_value,
+    )
+    agent.q_table[(hash(1), hash(hlo1))] = initial_higher_level_option_q_value
+
+    # Run the agent for five time-steps (i.e., until it reaches the terminal state).
+    _, testing_rewards = agent.run_agent(
+        num_epochs=1, epoch_length=5, test_interval=1, test_length=5, verbose_logging=False
+    )
+    assert len(testing_rewards) == 1
