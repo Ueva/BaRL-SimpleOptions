@@ -255,15 +255,18 @@ class OptionAgent:
         # If we are testing the greedy policy separately, make a separate copy of
         # the environment to use for those tests. Also initialise variables for
         # tracking test performance.
+        training_rewards = [None for _ in range(num_time_steps)]
+
         if test_interval > 0:
             test_interval_time_steps = test_interval * epoch_length
+            evaluation_rewards = [None for _ in range(num_time_steps // test_interval_time_steps)]
 
             # Check that a test environment has been provided - if not, raise an error.
             if self.test_env is None:
                 raise RuntimeError("No test_env has been provided specified.")
+        else:
+            evaluation_rewards = []
 
-        training_rewards = [None for _ in range(num_time_steps)]
-        evaluation_rewards = [None for _ in range(num_time_steps // test_interval_time_steps)]
         episode = 0
         time_steps = 0
 
