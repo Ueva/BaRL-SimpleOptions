@@ -225,8 +225,8 @@ class OptionAgent:
 
     def run_agent(
         self,
-        num_epochs,
-        epoch_length,
+        num_epochs: int,
+        epoch_length: int,
         render_interval: int = 0,
         test_interval: int = 0,
         test_length: int = 0,
