@@ -1,5 +1,6 @@
 from simpleoptions import BaseOption
 
+
 class GenericOptionGenerator(object):
     def __init__(self):
         pass
@@ -7,5 +8,5 @@ class GenericOptionGenerator(object):
     def generate_options(self):
         pass
 
-    def train_option(self, option : BaseOption):
+    def train_option(self, option: BaseOption):
         pass
