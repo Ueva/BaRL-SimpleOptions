@@ -3,6 +3,7 @@ import math
 import random
 import statistics
 import numpy as np
+from numpy.random import Generator as RNG
 
 from copy import copy
 from collections import defaultdict
@@ -28,6 +29,7 @@ class OptionAgent:
         gamma: float = 1.0,
         default_action_value=0.0,
         n_step_updates=False,
+        rng: RNG = None,
     ):
         """
         Constructs a new OptionAgent object.
@@ -51,15 +53,13 @@ class OptionAgent:
         self.executing_options_states = []
         self.executing_options_rewards = []
         self.n_step_updates = n_step_updates
+        self.rng = rng if rng else random
 
         self.env = env
         self.test_env = test_env if test_env is not None else None
 
         self.evaluation_log = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-        # {evaluation_number: {evaluation_run: {log_data: []}}}
-
         self.training_log = defaultdict(list)
-        # {log_data: []}}}
 
     def macro_q_learn(
         self,
@@ -206,9 +206,9 @@ class OptionAgent:
         # base epsilon-greedy policy over the set of currently available options.
         if len(executing_options) == 0:
             # Random Action.
-            if not test and random.random() < self.epsilon:
+            if not test and self.rng.random() < self.epsilon:
                 available_options = self.env.get_available_options(state, exploration=True)
-                return random.choice(available_options)
+                return self.rng.choice(available_options)
             # Best Action.
             else:
                 available_options = self.env.get_available_options(state, exploration=False)
@@ -217,7 +217,7 @@ class OptionAgent:
 
                 # Return the option with the highest Q-value, breaking ties randomly.
                 return available_options[
-                    random.choice([idx for idx, q_value in enumerate(q_values) if q_value == max(q_values)])
+                    self.rng.choice([idx for idx, q_value in enumerate(q_values) if q_value == max(q_values)])
                 ]
         # If we are currently following an option's policy, return what it selects.
         else:
@@ -456,7 +456,7 @@ class OptionAgent:
     def _roll_termination(self, option: "BaseOption", state: Hashable):
         # Rolls on whether or not the given option terminates in the given state.
         # Will work with stochastic and deterministic termination functions.
-        if random.random() > option.termination(state):
+        if self.rng.random() > option.termination(state):
             return False
         else:
             return True
