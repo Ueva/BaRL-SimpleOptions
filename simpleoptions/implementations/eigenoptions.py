@@ -190,13 +190,13 @@ class EigenoptionGenerator(GenericOptionGenerator):
                 break
 
         # Add policy to graph for inspection.
-        stg = env.generate_interaction_graph()
-        for state in stg.nodes:
-            if state in values:
-                stg.nodes[state][f"PVF {option.pvf_id} Values"] = values[state]
-            if state in policy:
-                stg.nodes[state][f"PVF {option.pvf_id} Policy"] = str(policy[state])
-        nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
+        # stg = env.generate_interaction_graph()
+        # for state in stg.nodes:
+        #     if state in values:
+        #         stg.nodes[state][f"PVF {option.pvf_id} Values"] = values[state]
+        #     if state in policy:
+        #         stg.nodes[state][f"PVF {option.pvf_id} Policy"] = str(policy[state])
+        # nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
 
         option.primitive_policy = policy
 
@@ -248,11 +248,11 @@ class Eigenoption(BaseOption):
         return not self == other
 
 
-if __name__ == "__main__":
-    from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
+# if __name__ == "__main__":
+#     from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
 
-    env = DiscreteXuFourRooms()
-    gen = EigenoptionGenerator(4, 0.99)
-    options = gen.generate_options(env)
+#     env = DiscreteXuFourRooms()
+#     gen = EigenoptionGenerator(4, 0.99)
+#     options = gen.generate_options(env)
 
-    gen.train_option(env, options["1"])
+#     gen.train_option(env, options["1"])
