@@ -11,6 +11,7 @@ from simpleoptions.implementations import GenericOptionGenerator
 from tqdm import tqdm
 
 TERMINATE_ACTION = "EIG_TERMINATE"
+TERMINATE_STATE = "EIG_TERMINAL"
 THETA = 1e-8
 
 
@@ -117,9 +118,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         # Initialise values and policy.
         for state in option.pvf.keys():
             values[state] = 0
-
-            if not env.is_state_terminal(state):
-                policy[state] = TERMINATE_ACTION
+            policy[state] = TERMINATE_ACTION
 
         while True:
             # Policy Evaluation Step.
@@ -133,13 +132,13 @@ class EigenoptionGenerator(GenericOptionGenerator):
 
                     action = policy[state]
                     if action == TERMINATE_ACTION:
-                        next_state = TERMINATE_ACTION
+                        next_state = TERMINATE_STATE
                         reward = 0
                     else:
                         next_state = env.get_successors(state, [action])[0]
                         reward = _intrinsic_reward(state, next_state)
 
-                    if next_state == TERMINATE_ACTION or env.is_state_terminal(next_state):
+                    if next_state == TERMINATE_STATE or env.is_state_terminal(next_state):
                         v_next = 0
                     else:
                         v_next = values[next_state]
@@ -162,13 +161,13 @@ class EigenoptionGenerator(GenericOptionGenerator):
                 best_value = -np.inf
                 for action in _get_available_primitives(state):
                     if action == TERMINATE_ACTION:
-                        next_state = TERMINATE_ACTION
+                        next_state = TERMINATE_STATE
                         reward = 0
                     else:
                         next_state = env.get_successors(state, [action])[0]
                         reward = _intrinsic_reward(state, next_state)
 
-                    if next_state == TERMINATE_ACTION:
+                    if next_state == TERMINATE_STATE:
                         v_next = 0
                     elif env.is_state_terminal(next_state):
                         continue
@@ -208,11 +207,9 @@ class Eigenoption(BaseOption):
         self.pvf_id = pvf_id
         self.primitive_policy = {}
 
-        self.primitive_actions = {}
-        for state in env.get_state_space():
-            for action in env.get_available_actions(state):
-                if action not in self.primitive_actions.keys():
-                    self.primitive_actions[action] = PrimitiveOption(action, env)
+        self.primitive_actions = {
+            option.action: option for option in env.options if isinstance(option, PrimitiveOption)
+        }
 
     def initiation(self, state):
         return not self.termination(state)
