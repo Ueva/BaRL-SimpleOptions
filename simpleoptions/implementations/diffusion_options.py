@@ -75,7 +75,7 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
         env.reset()
         diffusion_options = self._generate_options(env)
         return diffusion_options
-    
+
     def _generate_options(self, env: BaseEnvironment):
         # Generate the environment's state-transition graph and ensure that it is undirected.
         stg, node_list, adj_mat, deg_mat, empty_rc = self._extract_graph_matrices(env)
@@ -102,7 +102,7 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
         D_root = np.diag(np.sqrt(D_diag))
         D_root_inv = np.diag(1 / np.sqrt(D_diag))
 
-        N = D_root_inv @ (D-adj_mat) @ D_root_inv
+        N = D_root_inv @ (D - adj_mat) @ D_root_inv
 
         _, R = scipy.linalg.polar(N, side="left")
         e_vals, left_e_vecs, right_e_vecs = scipy.linalg.eig(R, left=True, right=True)
@@ -135,17 +135,17 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
 
     def compute_f(self, e_vals, left_e_vecs, right_e_vecs, D_root):
         e_vals = 1 - 0.5 * e_vals
-        e_val_pow = e_vals ** self.time_scale
+        e_val_pow = e_vals**self.time_scale
         d_root_vec = np.diag(D_root)
         f = np.zeros(right_e_vecs.shape[0])
 
-        for s in range(f.shape[0]):       
+        for s in range(f.shape[0]):
             f_vec = 0
             for i in range(1, len(e_vals)):
                 f_vec += e_val_pow[i] * left_e_vecs[i, s] * right_e_vecs[i]
             f_vec /= d_root_vec[s]
             f_vec *= d_root_vec
-            f[s] = np.linalg.norm(f_vec, ord=2)**2
+            f[s] = np.linalg.norm(f_vec, ord=2) ** 2
         return f
 
     def _add_f_score_to_graph(self, stg, f_dict):
@@ -171,7 +171,7 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
                 subgoals[node] = stg.nodes[node]["diffusion_score"]
 
                 # Only take the top K subgoals.
-                sorted_subgoals = dict(sorted(subgoals.items(), key=lambda x: x[1], reverse=True)[:self.num_options])
+                sorted_subgoals = dict(sorted(subgoals.items(), key=lambda x: x[1], reverse=True)[: self.num_options])
                 return list(sorted_subgoals.keys())
 
     def train_option(self, env: BaseEnvironment, option: DiffusionOption):
@@ -182,6 +182,7 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
             env (BaseEnvionrment): The environment in which to train the Eigenoption policies.
             option (Eigenoption): The option whose internal policy to train.
         """
+
         def _get_available_primitives(state) -> List:
             return env.get_available_actions(state)
 
@@ -192,6 +193,7 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
                 return -0.01
 
         pass
+
 
 if __name__ == "__main__":
     from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
