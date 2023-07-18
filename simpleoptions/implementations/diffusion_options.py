@@ -1,68 +1,41 @@
-import scipy as sp
-import sys
-import matplotlib.pyplot as plt
-import pickle
-import math
 import copy
 
 import numpy as np
 import scipy
 import networkx as nx
 
-from simpleoptions import BaseEnvironment, BaseOption, PrimitiveOption
-from simpleoptions.implementations import GenericOptionGenerator
-from typing import List
+from simpleoptions import BaseEnvironment, PrimitiveOption
+from simpleoptions.implementations import SubgoalOptionGenerator, SubgoalOption
+
+from typing import List, Set, Dict, Hashable
+
 from tqdm import tqdm
 
 
-class DiffusionOption(BaseOption):
-    def __init__(self, env: BaseEnvironment, id: int):
-        self.env = copy.copy(env)
-        self.id = id
-        self.primitive_policy = {}
-        self.primitive_actions = {}
-        for state in env.get_state_space():
-            for action in env.get_available_actions(state):
-                if action not in self.primitive_actions.keys():
-                    self.primitive_actions[action] = PrimitiveOption(action, env)
-
-    def initiation(self, state):
-        return not self.termination(state)
-
-    def termination(self, state):
-        return self.env.is_state_terminal(state) or state == self.subgoal_state
-
-    def policy(self, state, test=False):
-        return self.primitive_actions[self.primitive_policy[state]]
-
-    def set_primitive_policy(self, primitive_policy: dict):
-        self.primitive_policy = primitive_policy
-
-    def __str__(self):
-        return f"DiffusionOption({self.id})"
-
-    def __repr__(self):
-        return str(self)
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __eq__(self, other):
-        if isinstance(other, DiffusionOption):
-            return self.id == other.id
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self == other
-
-
-class DiffusitionOptionGenerator(GenericOptionGenerator):
-    def __init__(self, num_options: int, time_scale: int):
+class DiffusitionOptionGenerator(SubgoalOptionGenerator):
+    def __init__(
+        self,
+        num_options: int,
+        time_scale: int,
+        option_learning_alpha: float,
+        option_learning_epsilon: float,
+        option_learning_gamma: float,
+        option_learning_max_steps: int,
+        option_learning_max_episode_steps: int,
+        option_learning_default_action_value: float,
+    ):
+        super().__init__(
+            option_learning_alpha,
+            option_learning_epsilon,
+            option_learning_gamma,
+            option_learning_max_steps,
+            option_learning_max_episode_steps,
+            option_learning_default_action_value,
+        )
         self.num_options = num_options
         self.time_scale = time_scale
 
-    def generate_options(self, env: BaseEnvironment) -> None:
+    def generate_options(self, env: BaseEnvironment) -> List["DiffusionOption"]:
         """
         Generates a set of Diffusion Options for the given environment.
 
@@ -72,11 +45,11 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
         Returns:
             List: A list of the generated Diffusion options.
         """
+        # Add primitive options to the environment.
+        primitive_options = [PrimitiveOption(action, env) for action in env.get_action_space()]
+        env.set_options(primitive_options)
         env.reset()
-        diffusion_options = self._generate_options(env)
-        return diffusion_options
 
-    def _generate_options(self, env: BaseEnvironment):
         # Generate the environment's state-transition graph and ensure that it is undirected.
         stg, node_list, adj_mat, deg_mat, empty_rc = self._extract_graph_matrices(env)
         e_vals, left_e_vecs, right_e_vecs, D_root = self._compute_eigendecomp(deg_mat, adj_mat)
@@ -91,10 +64,21 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
                 f_dict[node] = f_vec[f_idx]
                 f_idx += 1
 
-        print(f_dict)
         nx.set_node_attributes(stg, values=f_dict, name="diffusion_score")
-        subgoals = self._detect_subgoals_from_graph(stg)
-        options = [DiffusionOption(env, subgoal) for subgoal in subgoals]
+
+        # Select all local maxima of diffusion score as subgoals.
+        subgoals = [node for node in stg if self._is_local_maxima(node, stg, f_dict)]
+        subgoals = sorted(subgoals, key=lambda x: f_dict[x], reverse=True)[: min(self.num_options, len(subgoals))]
+
+        # Set initiation set to be all non-terminal states.
+        initiation_set = set([state for state in env.get_state_space() if not env.is_state_terminal(state)])
+
+        # Create and train an option for reaching each subgoal.
+        options = [None for _ in range(len(subgoals))]
+        for i, subgoal in tqdm(enumerate(subgoals), desc="Training Diffusion Options..."):
+            options[i] = DiffusionOption(env, subgoal, initiation_set - {subgoal})
+            self.train_option(options[i])
+
         return options
 
     def _compute_eigendecomp(self, D, adj_mat):
@@ -153,46 +137,33 @@ class DiffusitionOptionGenerator(GenericOptionGenerator):
             stg.nodes[node]["diffusion_score"] = f_dict[node]
         return stg
 
-    def _detect_subgoals_from_graph(self, stg):
-        subgoals = {}
+    def _is_local_maxima(self, node: Hashable, stg: nx.Graph, centralities: Dict):
+        return all(
+            centralities[node] > centralities[neighbour] for neighbour in stg.neighbors(node) if neighbour != node
+        )
 
-        for node in list(stg.nodes()):
-            is_local_maxima = True
-            neighbours = list(stg.neighbors(node))
-            if len(neighbours) == 0:
-                continue
 
-            for neighbour in list(neighbours):  # N.B. Only considers out_edges if stg is directed
-                if stg.nodes[neighbour]["diffusion_score"] > stg.nodes[node]["diffusion_score"]:
-                    is_local_maxima = False
-                    break
+class DiffusionOption(SubgoalOption):
+    def __init__(self, env: BaseEnvironment, subgoal: Hashable, initiation_set: Set[Hashable], q_table: Dict = None):
+        super().__init__(env, subgoal, initiation_set, q_table)
 
-            if is_local_maxima:
-                subgoals[node] = stg.nodes[node]["diffusion_score"]
+    def __str__(self):
+        return f"DiffusionOption({self.subgoal})"
 
-                # Only take the top K subgoals.
-                sorted_subgoals = dict(sorted(subgoals.items(), key=lambda x: x[1], reverse=True)[: self.num_options])
-                return list(sorted_subgoals.keys())
+    def __repr__(self):
+        return str(self)
 
-    def train_option(self, env: BaseEnvironment, option: DiffusionOption):
-        """
-        Takes an Eigenoption and trains its internal policy using Value Iteration.
+    def __hash__(self):
+        return hash(str(self))
 
-        Args:
-            env (BaseEnvionrment): The environment in which to train the Eigenoption policies.
-            option (Eigenoption): The option whose internal policy to train.
-        """
+    def __eq__(self, other):
+        if isinstance(other, DiffusionOption):
+            return self.id == other.id
+        else:
+            return False
 
-        def _get_available_primitives(state) -> List:
-            return env.get_available_actions(state)
-
-        def _pseudo_reward(next_state, option):
-            if next_state == option.subgoal:
-                return 1
-            else:
-                return -0.01
-
-        pass
+    def __ne__(self, other):
+        return not self == other
 
 
 if __name__ == "__main__":
@@ -200,7 +171,7 @@ if __name__ == "__main__":
 
     env = DiscreteXuFourRooms()
 
-    option_generator = DiffusitionOptionGenerator(10, 8)
+    option_generator = DiffusitionOptionGenerator(10, 8, 1.0, 0.2, 1.0, 10_000, 500, 0.0)
     print(len(env.get_state_space()))
     options = option_generator.generate_options(env)
 
