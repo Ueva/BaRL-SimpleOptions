@@ -64,25 +64,23 @@ class BetweennessOptionGenerator(SubgoalOptionGenerator):
         return options
 
     def _is_local_maxima(self, node: Hashable, stg: nx.Graph, centralities: Dict):
-        return all(centralities[node] > centralities[neighbour] for neighbour in stg.neighbors(node))
+        return all(
+            centralities[node] > centralities[neighbour] for neighbour in stg.neighbors(node) if neighbour != node
+        )
 
 
 class BetweennessOption(SubgoalOption):
     def __init__(
-        self, env: BaseEnvironment, subgoal: Hashable, initiation_set: Set, betweenness: float, q_table: Dict = None
+        self,
+        env: BaseEnvironment,
+        subgoal: Hashable,
+        initiation_set: Set[Hashable],
+        betweenness: float,
+        q_table: Dict = None,
     ):
         super().__init__(env, subgoal, initiation_set, q_table)
 
-        self.env = copy.copy(env)
-        self.subgoal = subgoal
-        self.initiation_set = initiation_set
-
         self.betweenness = betweenness
-
-        if q_table is None:
-            self.q_table = {}
-        else:
-            self.q_table = q_table
 
     def __str__(self):
         return f"BetweennessOption({self.subgoal})"

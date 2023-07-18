@@ -111,7 +111,7 @@ class SubgoalOptionGenerator(GenericOptionGenerator):
 
 
 class SubgoalOption(BaseOption):
-    def __init__(self, env: BaseEnvironment, subgoal: Hashable, initiation_set: Set, q_table: Dict = None):
+    def __init__(self, env: BaseEnvironment, subgoal: Hashable, initiation_set: Set[Hashable], q_table: Dict = None):
         self.env = copy.copy(env)
         self.subgoal = subgoal
         self.initiation_set = initiation_set
