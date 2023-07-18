@@ -86,7 +86,8 @@ class EigenoptionGenerator(GenericOptionGenerator):
 
     def _generate_from_sr(self, env: BaseEnvironment):
         # TODO: Implement generating Eigenoptions from the Successor Representation.
-        pass
+        eigenoptions, pvfs = self._generate_from_laplacian(env)
+        return eigenoptions, pvfs
 
     def train_option(self, env: BaseEnvironment, option: "Eigenoption"):
         """
@@ -217,7 +218,7 @@ class Eigenoption(BaseOption):
         return not self.termination(state)
 
     def termination(self, state):
-        if self.primitive_policy == TERMINATE_ACTION or self.env.is_state_terminal(state):
+        if self.primitive_policy[state] == TERMINATE_ACTION or self.env.is_state_terminal(state):
             return float(True)
         else:
             return float(False)
