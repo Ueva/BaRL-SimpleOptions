@@ -1,1 +1,2 @@
 from simpleoptions.implementations.generic_option_generator import GenericOptionGenerator
+from simpleoptions.implementations.subgoal_option_generator import SubgoalOptionGenerator, SubgoalOption
