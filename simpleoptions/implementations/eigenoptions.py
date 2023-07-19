@@ -81,7 +81,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         eigenoptions = {pvf_id: Eigenoption(env, pvf, pvf_id) for pvf_id, pvf in pvfs.items()}
 
         for eigenoption in tqdm(eigenoptions.values(), desc="Training Eigenoptions..."):
-            self.train_option(env, eigenoption)
+            self.train_option(eigenoption)
 
         return eigenoptions, pvfs
 
@@ -90,7 +90,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         eigenoptions, pvfs = self._generate_from_laplacian(env)
         return eigenoptions, pvfs
 
-    def train_option(self, env: BaseEnvironment, option: "Eigenoption"):
+    def train_option(self, option: "Eigenoption", debug=False):
         """
         Takes an Eigenoption and trains its internal policy using Value Iteration.
 
@@ -100,7 +100,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         """
 
         def _get_available_primitives(state):
-            return ["EIG_TERMINATE"] + [action for action in env.get_available_actions(state)]
+            return ["EIG_TERMINATE"] + [action for action in option.env.get_available_actions(state)]
 
         def _intrinsic_reward(state, next_state):
             reward = option.pvf[next_state] - option.pvf[state]
@@ -110,7 +110,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
             else:
                 return reward
 
-        env.reset()
+        option.env.reset()
 
         policy = {}
         values = {}
@@ -125,7 +125,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
             while True:
                 delta = 0
                 for state in option.pvf.keys():
-                    if env.is_state_terminal(state):
+                    if option.env.is_state_terminal(state):
                         continue
 
                     v_old = values[state]
@@ -135,10 +135,10 @@ class EigenoptionGenerator(GenericOptionGenerator):
                         next_state = TERMINATE_STATE
                         reward = 0
                     else:
-                        next_state = env.get_successors(state, [action])[0]
+                        next_state = option.env.get_successors(state, [action])[0]
                         reward = _intrinsic_reward(state, next_state)
 
-                    if next_state == TERMINATE_STATE or env.is_state_terminal(next_state):
+                    if next_state == TERMINATE_STATE or option.env.is_state_terminal(next_state):
                         v_next = 0
                     else:
                         v_next = values[next_state]
@@ -152,7 +152,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
             # Policy Improvement Step.
             policy_stable = True
             for state in option.pvf.keys():
-                if env.is_state_terminal(state):
+                if option.env.is_state_terminal(state):
                     continue
 
                 a_old = policy[state]
@@ -164,12 +164,12 @@ class EigenoptionGenerator(GenericOptionGenerator):
                         next_state = TERMINATE_STATE
                         reward = 0
                     else:
-                        next_state = env.get_successors(state, [action])[0]
+                        next_state = option.env.get_successors(state, [action])[0]
                         reward = _intrinsic_reward(state, next_state)
 
                     if next_state == TERMINATE_STATE:
                         v_next = 0
-                    elif env.is_state_terminal(next_state):
+                    elif option.env.is_state_terminal(next_state):
                         continue
                     else:
                         v_next = values[next_state]
@@ -188,14 +188,15 @@ class EigenoptionGenerator(GenericOptionGenerator):
             if policy_stable:
                 break
 
-        # Add policy to graph for inspection.
-        # stg = env.generate_interaction_graph()
-        # for state in stg.nodes:
-        #     if state in values:
-        #         stg.nodes[state][f"PVF {option.pvf_id} Values"] = values[state]
-        #     if state in policy:
-        #         stg.nodes[state][f"PVF {option.pvf_id} Policy"] = str(policy[state])
-        # nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
+        # If Debugging, output annotated graph for inspection.
+        if debug:
+            stg = option.env.generate_interaction_graph()
+            for state in stg.nodes:
+                if state in values:
+                    stg.nodes[state][f"PVF {option.pvf_id} Values"] = values[state]
+                if state in policy:
+                    stg.nodes[state][f"PVF {option.pvf_id} Policy"] = str(policy[state])
+            nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
 
         option.primitive_policy = policy
 
@@ -207,9 +208,15 @@ class Eigenoption(BaseOption):
         self.pvf_id = pvf_id
         self.primitive_policy = {}
 
+        # Add primitive options to the environment.
+        primitive_options = [PrimitiveOption(action, self.env) for action in self.env.get_action_space()]
+        self.env.set_options(primitive_options)
+
         self.primitive_actions = {
-            option.action: option for option in env.options if isinstance(option, PrimitiveOption)
+            option.action: option for option in self.env.options if isinstance(option, PrimitiveOption)
         }
+
+        print(self.primitive_actions)
 
     def initiation(self, state):
         return not self.termination(state)
@@ -245,11 +252,11 @@ class Eigenoption(BaseOption):
         return not self == other
 
 
-# if __name__ == "__main__":
-#     from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
+if __name__ == "__main__":
+    from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
 
-#     env = DiscreteXuFourRooms()
-#     gen = EigenoptionGenerator(4, 0.99)
-#     options = gen.generate_options(env)
+    env = DiscreteXuFourRooms()
+    gen = EigenoptionGenerator(5, 0.9)
+    options = gen.generate_options(env)
 
-#     gen.train_option(env, options["1"])
+    gen.train_option(options["4"], debug=True)
