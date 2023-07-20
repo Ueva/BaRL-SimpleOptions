@@ -222,8 +222,6 @@ class Eigenoption(BaseOption):
             option.action: option for option in self.env.options if isinstance(option, PrimitiveOption)
         }
 
-        print(self.primitive_actions)
-
     def initiation(self, state):
         return not self.termination(state)
 
