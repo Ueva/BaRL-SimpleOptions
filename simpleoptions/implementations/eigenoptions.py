@@ -16,7 +16,13 @@ THETA = 1e-8
 
 
 class EigenoptionGenerator(GenericOptionGenerator):
-    def __init__(self, num_pvfs: int, gamma: float):
+    def __init__(
+        self,
+        num_pvfs: int,
+        gamma: float,
+        *args,
+        **kwargs,
+    ):
         """
         Instantiates a new EigenOption Generator.
 

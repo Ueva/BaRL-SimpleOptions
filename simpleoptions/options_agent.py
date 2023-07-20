@@ -30,6 +30,8 @@ class OptionAgent:
         default_action_value=0.0,
         n_step_updates=False,
         rng: RNG = None,
+        *args,
+        **kwargs,
     ):
         """
         Constructs a new OptionAgent object.
