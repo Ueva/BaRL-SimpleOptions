@@ -6,10 +6,12 @@ import numpy as np
 import scipy as sci
 import networkx as nx
 
+from tqdm import tqdm
+from typing import List, Dict, Set
+
 from simpleoptions import BaseEnvironment, BaseOption, PrimitiveOption
 from simpleoptions.implementations import GenericOptionGenerator
 
-from tqdm import tqdm
 
 TERMINATE_ACTION = "EIG_TERMINATE"
 TERMINATE_STATE = "EIG_TERMINAL"
@@ -29,17 +31,20 @@ class EigenoptionGenerator(GenericOptionGenerator):
         self.num_pvfs = num_pvfs
         self.gamma = gamma
 
-    def generate_options(self, env: BaseEnvironment, return_pvfs: bool = False, debug: bool = False):
+    def generate_options(
+        self, env: BaseEnvironment, return_pvfs: bool = False, debug: bool = False
+    ) -> List["Eigenoption"]:
         """
         Generates a set of Eigenoptions for the given environment.
 
         Args:
-            env (BaseEnvironment): _description_
-            return_pvfs (bool, optional): _description_. Defaults to False.
+            env (BaseEnvironment): The environment to generate eigenoptions in.
+            return_pvfs (bool, optional): Whether to return the list of PVF. Defaults to False.
+            debug (bool, options):
 
         Returns:
-            dict[Eigenoption]: A dictionary of the generated Eigenoptions, keyed by Eigenoption ID.
-            dict[dict[str]] (optional): A dictionary containing each Eigenoption's PVF, mapping states to proto-values, keyed by Eigenoption ID.
+            list[Eigenoption]: A list containing the generated Eigenoptions.
+            dict[dict[str]] (optional): A dictionary containing each Eigenoption's PVF, mapping states to proto-values, keyed by Eigenoption pvf_id.
 
         """
         env.reset()
@@ -86,7 +91,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
 
         # If Debugging, output annotated graph for inspection.
         if debug:
-            stg = eigenoption.env.generate_interaction_graph()
+            stg = env.generate_interaction_graph()
             for eigenoption in eigenoptions:
                 for state in stg.nodes:
                     if state in eigenoption.state_values:
@@ -108,7 +113,6 @@ class EigenoptionGenerator(GenericOptionGenerator):
         Takes an Eigenoption and trains its internal policy using Value Iteration.
 
         Args:
-            env (BaseEnvionrment): The environment in which to train the Eigenoption policies.
             option (Eigenoption): The option whose internal policy to train.
         """
 
