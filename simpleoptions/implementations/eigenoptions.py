@@ -16,7 +16,13 @@ THETA = 1e-8
 
 
 class EigenoptionGenerator(GenericOptionGenerator):
-    def __init__(self, num_pvfs: int, gamma: float):
+    def __init__(
+        self,
+        num_pvfs: int,
+        gamma: float,
+        *args,
+        **kwargs,
+    ):
         """
         Instantiates a new EigenOption Generator.
 
@@ -215,8 +221,6 @@ class Eigenoption(BaseOption):
         self.primitive_actions = {
             option.action: option for option in self.env.options if isinstance(option, PrimitiveOption)
         }
-
-        print(self.primitive_actions)
 
     def initiation(self, state):
         return not self.termination(state)

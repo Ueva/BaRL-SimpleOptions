@@ -23,6 +23,8 @@ class DiffusitionOptionGenerator(SubgoalOptionGenerator):
         option_learning_max_steps: int,
         option_learning_max_episode_steps: int,
         option_learning_default_action_value: float,
+        *args,
+        **kwargs,
     ):
         super().__init__(
             option_learning_alpha,
