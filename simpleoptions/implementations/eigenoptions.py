@@ -1,3 +1,4 @@
+import os
 import math
 import copy
 
@@ -16,13 +17,7 @@ THETA = 1e-8
 
 
 class EigenoptionGenerator(GenericOptionGenerator):
-    def __init__(
-        self,
-        num_pvfs: int,
-        gamma: float,
-        *args,
-        **kwargs,
-    ):
+    def __init__(self, num_pvfs: int, gamma: float):
         """
         Instantiates a new EigenOption Generator.
 
@@ -34,7 +29,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         self.num_pvfs = num_pvfs
         self.gamma = gamma
 
-    def generate_options(self, env: BaseEnvironment, return_pvfs: bool = False):
+    def generate_options(self, env: BaseEnvironment, return_pvfs: bool = False, debug: bool = False):
         """
         Generates a set of Eigenoptions for the given environment.
 
@@ -50,16 +45,16 @@ class EigenoptionGenerator(GenericOptionGenerator):
         env.reset()
 
         if hasattr(env, "get_successor_representation"):
-            eigenoptions, pvfs = self._generate_from_sr(env)
+            eigenoptions, pvfs = self._generate_from_sr(env, debug)
         else:
-            eigenoptions, pvfs = self._generate_from_laplacian(env)
+            eigenoptions, pvfs = self._generate_from_laplacian(env, debug)
 
         if return_pvfs:
             return eigenoptions, pvfs
         else:
             return eigenoptions
 
-    def _generate_from_laplacian(self, env: BaseEnvironment):
+    def _generate_from_laplacian(self, env: BaseEnvironment, debug: bool = False):
         # Generate the environment's state-transition graph and ensure that it is undirected.
         stg = env.generate_interaction_graph()
         if isinstance(stg, nx.DiGraph):
@@ -84,10 +79,22 @@ class EigenoptionGenerator(GenericOptionGenerator):
                 pvfs[f"{i}"][node] = pvf[j]
                 pvfs[f"-{i}"][node] = -pvf[j]
 
-        eigenoptions = {pvf_id: Eigenoption(env, pvf, pvf_id) for pvf_id, pvf in pvfs.items()}
+        eigenoptions = [Eigenoption(env, pvf, pvf_id) for pvf_id, pvf in pvfs.items()]
 
-        for eigenoption in tqdm(eigenoptions.values(), desc="Training Eigenoptions..."):
-            self.train_option(eigenoption)
+        for i, eigenoption in tqdm(enumerate(eigenoptions), desc="Training Eigenoptions..."):
+            self.train_option(eigenoptions[i])
+
+        # If Debugging, output annotated graph for inspection.
+        if debug:
+            stg = eigenoption.env.generate_interaction_graph()
+            for eigenoption in eigenoptions:
+                for state in stg.nodes:
+                    if state in eigenoption.state_values:
+                        stg.nodes[state][f"PVF {eigenoption.pvf_id} Values"] = eigenoption.state_values[state]
+                        print(f"PVF {eigenoption.pvf_id} Values")
+                    if state in eigenoption.primitive_policy:
+                        stg.nodes[state][f"PVF {eigenoption.pvf_id} Policy"] = str(eigenoption.policy(state))
+            nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
 
         return eigenoptions, pvfs
 
@@ -96,7 +103,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
         eigenoptions, pvfs = self._generate_from_laplacian(env)
         return eigenoptions, pvfs
 
-    def train_option(self, option: "Eigenoption", debug=False):
+    def train_option(self, option: "Eigenoption"):
         """
         Takes an Eigenoption and trains its internal policy using Value Iteration.
 
@@ -194,17 +201,8 @@ class EigenoptionGenerator(GenericOptionGenerator):
             if policy_stable:
                 break
 
-        # If Debugging, output annotated graph for inspection.
-        if debug:
-            stg = option.env.generate_interaction_graph()
-            for state in stg.nodes:
-                if state in values:
-                    stg.nodes[state][f"PVF {option.pvf_id} Values"] = values[state]
-                if state in policy:
-                    stg.nodes[state][f"PVF {option.pvf_id} Policy"] = str(policy[state])
-            nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
-
         option.primitive_policy = policy
+        option.state_values = values
 
 
 class Eigenoption(BaseOption):
@@ -213,6 +211,7 @@ class Eigenoption(BaseOption):
         self.pvf = pvf
         self.pvf_id = pvf_id
         self.primitive_policy = {}
+        self.state_values = {}
 
         # Add primitive options to the environment.
         primitive_options = [PrimitiveOption(action, self.env) for action in self.env.get_action_space()]
@@ -232,7 +231,11 @@ class Eigenoption(BaseOption):
             return float(False)
 
     def policy(self, state, test=False):
-        return self.primitive_actions[self.primitive_policy[state]]
+        action = self.primitive_policy[state]
+        if action == TERMINATE_ACTION:
+            return TERMINATE_ACTION
+        else:
+            return self.primitive_actions[action]
 
     def set_primitive_policy(self, primitive_policy: dict):
         self.primitive_policy = primitive_policy
@@ -261,6 +264,4 @@ if __name__ == "__main__":
 
     env = DiscreteXuFourRooms()
     gen = EigenoptionGenerator(5, 0.9)
-    options = gen.generate_options(env)
-
-    gen.train_option(options["4"], debug=True)
+    options = gen.generate_options(env, debug=True)
