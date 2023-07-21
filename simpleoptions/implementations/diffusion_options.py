@@ -37,7 +37,9 @@ class DiffusitionOptionGenerator(SubgoalOptionGenerator):
         self.num_options = num_options
         self.time_scale = time_scale
 
-    def generate_options(self, env: BaseEnvironment) -> List["DiffusionOption"]:
+    def generate_options(
+        self, env: BaseEnvironment, return_subgoals: bool = False, debug: bool = False
+    ) -> List["DiffusionOption"]:
         """
         Generates a set of Diffusion Options for the given environment.
 
@@ -81,7 +83,21 @@ class DiffusitionOptionGenerator(SubgoalOptionGenerator):
             options[i] = DiffusionOption(env, subgoal, initiation_set - {subgoal})
             self.train_option(options[i])
 
-        return options
+        # If Debugging, output annotated graph for inspection.
+        if debug:
+            stg = env.generate_interaction_graph()
+            for option in options:
+                for state in stg.nodes:
+                    if option.initiation(state):
+                        stg.nodes[state][f"{option.subgoal} Policy"] = str(option.policy(state))
+                    elif state == option.subgoal:
+                        stg.nodes[state][f"{option.subgoal} Policy"] = "GOAL"
+            nx.write_gexf(stg, "diffusion_test.gexf", prettyprint=True)
+
+        if return_subgoals:
+            return options, subgoals
+        else:
+            return options
 
     def _compute_eigendecomp(self, D, adj_mat):
         D_diag = np.diag(D)
@@ -173,8 +189,5 @@ if __name__ == "__main__":
 
     env = DiscreteXuFourRooms()
 
-    option_generator = DiffusitionOptionGenerator(10, 8, 1.0, 0.2, 1.0, 10_000, 500, 0.0)
-    print(len(env.get_state_space()))
-    options = option_generator.generate_options(env)
-
-    print(options)
+    option_generator = DiffusitionOptionGenerator(10, 8, 1.0, 0.3, 1.0, 100_000, 500, 0.0)
+    options = option_generator.generate_options(env, debug=True)
