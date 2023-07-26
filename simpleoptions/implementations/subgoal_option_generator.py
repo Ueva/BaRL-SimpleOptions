@@ -68,12 +68,6 @@ class SubgoalOptionGenerator(GenericOptionGenerator):
                 elif done:  # Agent reached a terminal state.
                     reward = -1.0
                     terminal = True
-                elif (
-                    episode_steps > self.max_episode_steps or time_steps > self.max_steps
-                ):  # Training time-limit exceeded.
-                    reward = -0.001
-                    terminal = True
-
                 else:  # Otherwise...
                     reward = -0.001
                     terminal = False
@@ -94,6 +88,11 @@ class SubgoalOptionGenerator(GenericOptionGenerator):
                 q_table[(hash(state), hash(action))] = old_q + self.alpha * (new_q - old_q)
 
                 state = next_state
+
+                if (
+                    episode_steps > self.max_episode_steps or time_steps > self.max_steps
+                ):  # Training time-limit exceeded.
+                    break
 
         option.q_table = q_table
 

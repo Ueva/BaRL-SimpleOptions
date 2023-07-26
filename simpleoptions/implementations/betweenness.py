@@ -63,7 +63,7 @@ class BetweennessOptionGenerator(SubgoalOptionGenerator):
         options = [None for _ in range(len(subgoals))]
         for i, subgoal in tqdm(enumerate(subgoals), desc="Training Betweeness Options..."):
             initiation_set = sorted(list(nx.single_target_shortest_path_length(stg, subgoal)), key=lambda x: x[1])
-            initiation_set = list(list(zip(*initiation_set))[0])[1 : self.initiation_set_size + 1]
+            initiation_set = set(list(zip(*initiation_set))[0])[1 : self.initiation_set_size + 1]
             options[i] = BetweennessOption(
                 env=env, subgoal=subgoal, initiation_set=initiation_set, betweenness=centralities[subgoal]
             )
