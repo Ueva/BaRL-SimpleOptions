@@ -4,5 +4,5 @@ from simpleoptions.implementations.subgoal_option_generator import SubgoalOption
 
 # Skill Discovery Algorithm Implementations.
 from simpleoptions.implementations.eigenoptions import EigenoptionGenerator, Eigenoption
-from simpleoptions.implementations.diffusion_options import DiffusitionOptionGenerator, DiffusionOption
+from simpleoptions.implementations.diffusion_options import DiffusionOptionGenerator, DiffusionOption
 from simpleoptions.implementations.betweenness import BetweennessOptionGenerator, BetweennessOption

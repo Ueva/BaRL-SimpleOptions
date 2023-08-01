@@ -12,7 +12,7 @@ from typing import List, Set, Dict, Hashable
 from tqdm import tqdm
 
 
-class DiffusitionOptionGenerator(SubgoalOptionGenerator):
+class DiffusionOptionGenerator(SubgoalOptionGenerator):
     def __init__(
         self,
         num_options: int,
@@ -74,12 +74,18 @@ class DiffusitionOptionGenerator(SubgoalOptionGenerator):
         subgoals = [node for node in stg if self._is_local_maxima(node, stg, f_dict)]
         subgoals = sorted(subgoals, key=lambda x: f_dict[x], reverse=True)[: min(self.num_options, len(subgoals))]
 
-        # Set initiation set to be all non-terminal states.
-        initiation_set = set([state for state in env.get_state_space() if not env.is_state_terminal(state)])
-
         # Create and train an option for reaching each subgoal.
         options = [None for _ in range(len(subgoals))]
         for i, subgoal in tqdm(enumerate(subgoals), desc="Training Diffusion Options..."):
+            # Set initiation set to be all non-terminal states from which there exists a path to the subgoal state.
+            initiation_set = set(
+                [
+                    state
+                    for state in env.get_state_space()
+                    if (not env.is_state_terminal(state)) and (nx.has_path(stg, state, subgoal))
+                ]
+            )
+
             options[i] = DiffusionOption(env, subgoal, initiation_set - {subgoal})
             self.train_option(options[i])
 
@@ -176,7 +182,7 @@ class DiffusionOption(SubgoalOption):
 
     def __eq__(self, other):
         if isinstance(other, DiffusionOption):
-            return self.id == other.id
+            return self.subgoal == other.subgoal
         else:
             return False
 
@@ -189,5 +195,5 @@ if __name__ == "__main__":
 
     env = DiscreteXuFourRooms()
 
-    option_generator = DiffusitionOptionGenerator(10, 8, 1.0, 0.3, 1.0, 100_000, 500, 0.0)
+    option_generator = DiffusionOptionGenerator(10, 8, 1.0, 0.3, 1.0, 100_000, 500, 0.0)
     options = option_generator.generate_options(env, debug=True)
