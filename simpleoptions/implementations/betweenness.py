@@ -16,6 +16,7 @@ from tqdm import tqdm
 class BetweennessOptionGenerator(SubgoalOptionGenerator):
     def __init__(
         self,
+        num_options: int,
         initiation_set_size: int,
         option_learning_alpha: float,
         option_learning_epsilon: float,
@@ -32,10 +33,16 @@ class BetweennessOptionGenerator(SubgoalOptionGenerator):
             option_learning_max_episode_steps,
             option_learning_default_action_value,
         )
+        self.num_options = num_options
         self.initiation_set_size = initiation_set_size
 
     def generate_options(
-        self, env: BaseEnvironment, directed: bool, goal_states: List[Hashable] = None
+        self,
+        env: BaseEnvironment,
+        directed: bool,
+        goal_states: List[Hashable] = None,
+        return_subgoals: bool = False,
+        debug: bool = False,
     ) -> List["BetweennessOption"]:
         # Add primitive options to the environment.
         primitive_options = [PrimitiveOption(action, env) for action in env.get_action_space()]
@@ -49,19 +56,34 @@ class BetweennessOptionGenerator(SubgoalOptionGenerator):
             centralities = nx.betweenness_centrality_subset(stg, sources=list(stg), targets=goal_states)
 
         # Find nodes that are local maxima of betweenness.
-        local_maxima = [node for node in stg if self._is_local_maxima(node, stg, centralities)]
+        subgoals = [node for node in stg if self._is_local_maxima(node, stg, centralities)]
+        subgoals = sorted(subgoals, key=lambda x: centralities[x], reverse=True)[: min(self.num_options, len(subgoals))]
 
         # Define options for reaching each subgoal.
-        options = [None for _ in range(len(local_maxima))]
-        for i, subgoal in tqdm(enumerate(local_maxima), desc="Training Betweeness Options..."):
+        options = [None for _ in range(len(subgoals))]
+        for i, subgoal in tqdm(enumerate(subgoals), desc="Training Betweeness Options..."):
             initiation_set = sorted(list(nx.single_target_shortest_path_length(stg, subgoal)), key=lambda x: x[1])
             initiation_set = list(list(zip(*initiation_set))[0])[1 : self.initiation_set_size + 1]
             options[i] = BetweennessOption(
-                env=env, subgoal=subgoal, initiation_set=initiation_set, betweenness=centralities[subgoal]
+                env=env, subgoal=subgoal, initiation_set=set(initiation_set), betweenness=centralities[subgoal]
             )
             self.train_option(options[i])
 
-        return options
+        # If Debugging, output annotated graph for inspection.
+        if debug:
+            stg = env.generate_interaction_graph()
+            for option in options:
+                for state in stg.nodes:
+                    if option.initiation(state):
+                        stg.nodes[state][f"{option.subgoal} Policy"] = str(option.policy(state))
+                    elif state == option.subgoal:
+                        stg.nodes[state][f"{option.subgoal} Policy"] = "GOAL"
+            nx.write_gexf(stg, "betweenness_test.gexf", prettyprint=True)
+
+        if return_subgoals:
+            return options, subgoals
+        else:
+            return options
 
     def _is_local_maxima(self, node: Hashable, stg: nx.Graph, centralities: Dict):
         return all(
@@ -105,18 +127,6 @@ if __name__ == "__main__":
     from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
 
     env = DiscreteXuFourRooms()
-    gen = BetweennessOptionGenerator(20, 1.0, 0.2, 1.0, 10_000, 100, 0.0)
-    options = gen.generate_options(env, directed=True)
+    gen = BetweennessOptionGenerator(4, 20, 1.0, 0.3, 1.0, 100_000, 100, 0.0)
+    options = gen.generate_options(env, directed=True, debug=True)
     print([option.subgoal for option in options])
-
-    option = options[0]
-    print(option.subgoal)
-    print(option.initiation_set)
-    print(len(option.initiation_set))
-    print(f"{option.initiation_set[1]}: {option.policy(option.initiation_set[1])}")
-    print(
-        {
-            action: option.q_table[(hash(option.initiation_set[1]), hash(action))]
-            for action in option.env.get_available_options(option.initiation_set[1])
-        }
-    )
