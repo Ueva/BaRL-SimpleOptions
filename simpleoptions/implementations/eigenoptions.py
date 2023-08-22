@@ -103,9 +103,9 @@ class EigenoptionGenerator(GenericOptionGenerator):
 
         return eigenoptions, pvfs
 
-    def _generate_from_sr(self, env: BaseEnvironment):
+    def _generate_from_sr(self, env: BaseEnvironment, debug: bool = False):
         # TODO: Implement generating Eigenoptions from the Successor Representation.
-        eigenoptions, pvfs = self._generate_from_laplacian(env)
+        eigenoptions, pvfs = self._generate_from_laplacian(env, debug)
         return eigenoptions, pvfs
 
     def train_option(self, option: "Eigenoption"):
