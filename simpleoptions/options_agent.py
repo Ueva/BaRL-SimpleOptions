@@ -234,6 +234,7 @@ class OptionAgent:
         test_length: int = 0,
         test_runs: int = 10,
         verbose_logging: bool = True,
+        episodic_eval: bool = False,
     ) -> Tuple[DefaultDict, DefaultDict | None]:
         """
         Trains the agent for a given number of episodes.
@@ -348,6 +349,7 @@ class OptionAgent:
                             time_steps // test_interval_time_steps,
                             allow_exploration=False,
                             verbose_logging=verbose_logging,
+                            episodic_eval=episodic_eval,
                         )
 
                 # If we have been training for more than the desired number of time-steps, terminate.
@@ -389,59 +391,79 @@ class OptionAgent:
             evaluation_log = evaluation_rewards if evaluation_rewards else None
             return training_log, evaluation_log
 
-    def test_policy(self, test_length, test_runs, eval_number, allow_exploration=False, verbose_logging=True):
-        test_returns = [None for _ in range(test_runs)]
+    def test_policy(
+        self,
+        test_length: int,
+        test_runs: int,
+        eval_number: int,
+        allow_exploration: bool = False,
+        verbose_logging: bool = True,
+        episodic_eval: bool = False,
+    ):
+        """Evaluates the agents current policy.
+
+        Args:
+            test_length (int): Number of timesteps to evaluate agent over,
+                                    or number of evaluation episodes if `episodic_eval`.
+            test_runs (int): Number of evaluations to perform,
+                                    or number of episodes to evaluate if `episodic_eval`.
+            eval_number (int): Unique sequential identifier of current evaluation.
+            allow_exploration (bool, optional): Toggle between epsilon-greedy (True) and epsilon policies (False). Defaults to False.
+            verbose_logging (bool, optional): Enables detailed logging of evaluation. Defaults to True.
+            episodic_eval (bool, optional): Toggle between episodic (True) and fixed timestep (False) evaluations. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
+
+        test_total_rewards = [None for _ in range(test_runs)]
 
         for test_run in range(test_runs):
             time_steps = 0
-            run_rewards = [None for _ in range(test_length)]
-            while time_steps < test_length:
-                state = self.test_env.reset()
-                executing_options = []
-                terminal = False
+            cumulative_reward = 0
+            state = self.test_env.reset()
+            executing_options = []
+            terminal = False
+            while time_steps < test_length and not (terminal and episodic_eval):
+                selected_option = self.select_action(state, executing_options, test=not allow_exploration)
 
-                while not terminal:
-                    selected_option = self.select_action(state, executing_options, test=not allow_exploration)
+                # Handle if the selected option is a higher-level option.
+                if isinstance(selected_option, BaseOption):
+                    executing_options.append(copy(selected_option))
 
-                    # Handle if the selected option is a higher-level option.
-                    if isinstance(selected_option, BaseOption):
-                        executing_options.append(copy(selected_option))
+                # Handle if the selected option is a primitive action.
+                else:
+                    time_steps += 1
+                    next_state, reward, terminal, __ = self.test_env.step(selected_option)
 
-                    # Handle if the selected option is a primitive action.
+                    # Logging
+                    cumulative_reward += reward
+                    if verbose_logging:
+                        transition = {
+                            "state": state,
+                            "next_state": next_state,
+                            "reward": reward,
+                            "terminal": terminal,
+                            "active_options": [str(option) for option in executing_options],
+                        }
+                        for key, value in transition.items():
+                            self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
+
+                    # Reset environment and continue evaluation run.
+                    if terminal and not episodic_eval:
+                        state = self.test_env.reset()
+                        executing_options = []
+                        terminal = False
+                    # Continue evaluation run
                     else:
-                        time_steps += 1
-                        next_state, reward, terminal, __ = self.test_env.step(selected_option)
-
-                        # Logging
-                        run_rewards[time_steps - 1] = reward
-                        if verbose_logging:
-                            transition = {
-                                "state": state,
-                                "next_state": next_state,
-                                "reward": reward,
-                                "terminal": terminal,
-                                "active_options": [str(option) for option in executing_options],
-                            }
-                            for key, value in transition.items():
-                                self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
-
                         state = next_state
-
                         # Terminate any options which need terminating this time-step.
                         while executing_options and self._roll_termination(executing_options[-1], next_state):
                             executing_options.pop()
 
-                    # If we have been testing for more than the desired number of time-steps, terminate.
-                    if time_steps >= test_length:
-                        terminal = True
+            test_total_rewards[test_run] = cumulative_reward
 
-                    # Handle if the current state is terminal.
-                    if terminal:
-                        while len(executing_options) > 0:
-                            executing_options.pop()
-
-            test_returns[test_run] = sum(run_rewards)
-        return statistics.mean(test_returns)
+        return statistics.mean(test_total_rewards)
 
     def _discounted_return(self, rewards: List[float], gamma: float) -> float:
         # Computes the discounted reward given an ordered list of rewards, and a discount factor.
