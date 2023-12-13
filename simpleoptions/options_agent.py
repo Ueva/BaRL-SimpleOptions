@@ -237,7 +237,7 @@ class OptionAgent:
         episodic_eval: bool = False,
     ) -> Tuple[DefaultDict, DefaultDict | None]:
         """
-        Trains the agent for a given number of episodes.
+        Trains the agent for a given number of epochs.
 
         Args:
             num_epochs (int): The number of epochs to train the agent for.
@@ -277,7 +277,6 @@ class OptionAgent:
             # Initialise initial state variables.
             state = self.env.reset()
             terminal = False
-
             if render_interval > 0:
                 self.env.render()
 
@@ -294,7 +293,6 @@ class OptionAgent:
                 else:
                     time_steps += 1
                     next_state, reward, terminal, __ = self.env.step(selected_option)
-
                     # Logging
                     training_rewards[time_steps - 1] = reward
                     if verbose_logging:
@@ -404,7 +402,7 @@ class OptionAgent:
 
         Args:
             test_length (int): Number of timesteps to evaluate agent over,
-                                    or number of evaluation episodes if `episodic_eval`.
+                                    or episode cut off steps if `episodic_eval`.
             test_runs (int): Number of evaluations to perform,
                                     or number of episodes to evaluate if `episodic_eval`.
             eval_number (int): Unique sequential identifier of current evaluation.
