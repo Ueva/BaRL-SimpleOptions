@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you have used SimpleOptions as part of your work, we'd really appreciate a citation!"
+authors:
+  - family-names: Evans
+    given-names: Joshua
+    orcid: https://orcid.org/0009-0003-8593-600X
+title: "SimpleOptions"
+version: 0.7.0
+date-released: 2019-07-25
