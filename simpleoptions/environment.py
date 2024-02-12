@@ -259,7 +259,7 @@ class BaseEnvironment(ABC):
                     states.append(successor_state)
 
                     if not self.is_state_terminal(successor_state):
-                        for new_successor_state in self.get_successors(successor_state):
+                        for new_successor_state, _ in self.get_successors(successor_state):
                             next_successor_states.append(new_successor_state)
 
             current_successor_states = copy.deepcopy(next_successor_states)
