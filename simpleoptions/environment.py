@@ -279,3 +279,29 @@ class BaseEnvironment(ABC):
                 stg.add_edge(state, successor_state)
 
         return stg
+
+
+class BaseEnvironmentSR(BaseEnvironment):
+    @abstractmethod
+    def get_successor_representation(self, gamma: float, state: Hashable = None):
+        """
+        Returns the successor representation for the given state, or for all states if no state is given.
+
+        Args:
+            gamma (float): The discount factor to use when computing the successor representation.
+            state (Hashable, optional): The state to return the successor representation for. Defaults to None.
+        """
+        pass
+
+
+class BaseEnvironmentSF(BaseEnvironmentSR):
+    @abstractmethod
+    def get_successor_features(self, gamma: float, state: Hashable = None):
+        """
+        Returns the successor features for the given state, or for all states if no state is given.
+
+        Args:
+            gamma (float): The discount factor to use when computing the successor features.
+            state (Hashable, optional): The state to return successor features for. Defaults to None.
+        """
+        pass
