@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleoptions",
-    version="0.7.0",
+    version="0.8.0",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides a simple framework for working with Options in Reinforcement Learning.",
