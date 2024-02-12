@@ -195,17 +195,21 @@ class BaseEnvironment(ABC):
         pass
 
     @abstractmethod
-    def get_successors(self, state: Hashable = None, actions: List[Hashable] = None) -> List[Hashable]:
+    def get_successors(self, state: Hashable, actions: List[Hashable] = None) -> List[Tuple[Hashable, float]]:
         """
-        Returns a list of states which can be reached by taking an action in the given state.
-        If no state is specified, a list of successor states for the current state will be returned.
+        Returns a list of the form (state, probability) for all states that can be reached from the given state.
+        If an action is given, returns the states that can be reached by taking that action in the given state.
+        If no action is given, returns the states that can be reached by taking any action in the given state, with their
+        respective probabilities of occurring under the random policy.
 
         Args:
-            state (Hashable, optional): The state to return successors for. Defaults to None (i.e. current state).
+            state (Hashable): The state to return possible successors for.
             actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
 
         Returns:
-            List[Hashable]: A list of states reachable by taking an action in the given state.
+            List[Tuple[Hashable, Float]]: A list of possible successor states, with their associated probabilities of occurring.
+        """
+        pass
         """
         pass
 
