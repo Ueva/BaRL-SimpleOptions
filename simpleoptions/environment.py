@@ -210,6 +210,30 @@ class BaseEnvironment(ABC):
             List[Tuple[Hashable, Float]]: A list of possible successor states, with their associated probabilities of occurring.
         """
         pass
+
+    @abstractmethod
+    def encode_state(self, state: Hashable) -> int:
+        """
+        Returns an integer encoding of the given state.
+
+        Args:
+            state (Hashable): The state to encode into an integer representation.
+
+        Returns:
+            int: The integer representation of the given state.
+        """
+        pass
+
+    @abstractmethod
+    def decode_state(self, state: int) -> Hashable:
+        """
+        Retuns the state corresponding to the given integer encoding.
+
+        Args:
+            state (int): The integer to decode into a state.
+
+        Returns:
+            Hashable: The state corresponding to the given integer encoding.
         """
         pass
 
