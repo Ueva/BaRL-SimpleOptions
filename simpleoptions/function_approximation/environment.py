@@ -1,8 +1,8 @@
+import gymnasium as gym
+
 from typing import List, Dict, Tuple, Hashable
 from copy import copy
 from abc import ABC, abstractmethod
-
-from gymnasium import spaces
 
 from simpleoptions.option import BaseOption
 
@@ -14,7 +14,7 @@ class ApproxBaseEnvironment(ABC):
         self.current_state = None
 
     @abstractmethod
-    def reset(self, state: Hashable = None) -> Tuple(Hashable, Dict):
+    def reset(self, state: Hashable = None) -> Tuple[Hashable, Dict]:
         pass
 
     @abstractmethod
@@ -30,11 +30,11 @@ class ApproxBaseEnvironment(ABC):
         pass
 
     @abstractmethod
-    def get_state_space(self) -> spaces.Space:
+    def get_state_space(self) -> gym.spaces.Space:
         pass
 
     @abstractmethod
-    def get_action_space(self) -> spaces.Space:
+    def get_action_space(self) -> gym.spaces.Space:
         pass
 
     @abstractmethod
@@ -91,3 +91,47 @@ class ApproxBaseEnvironment(ABC):
                 self.exploration_options.update(copy.copy(new_options))
 
         assert self.options.isdisjoint(self.exploration_option)
+
+
+class GymWrapper(ApproxBaseEnvironment):
+    """
+    A wrapper for OpenAI Gym environments, to make them compatible with the ApproxBaseEnvironment interface.
+    """
+
+    def __init__(self, env: gym.Env):
+        super().__init__()
+        self.env = env
+
+    def reset(self, state: Hashable = None) -> Tuple[Hashable, Dict]:
+        return self.env.reset()
+
+    def step(self, action: Hashable, state: Hashable = None) -> Tuple[Hashable, float, bool, bool, dict]:
+        return self.env.step(action)
+
+    def render(self, mode: str = "human") -> None:
+        return self.env.render(mode)
+
+    def close(self) -> None:
+        return self.env.close()
+
+    def get_state_space(self) -> gym.spaces.Space:
+        return self.env.observation_space
+
+    def get_action_space(self) -> gym.spaces.Space:
+        return self.env.action_space
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self.env.observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self.env.action_space
+
+    @property
+    def reward_range(self) -> Tuple[float, float]:
+        return self.env.reward_range
+
+    @property
+    def unwrapped(self) -> gym.Env:
+        return self.env.unwrapped
