@@ -1,1 +1,1 @@
-from simpleoptions.function_approximation.environment import ApproxBaseEnvironment
+from simpleoptions.function_approximation.environment import ApproxBaseEnvironment, GymWrapper
