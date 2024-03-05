@@ -22,7 +22,7 @@ class ApproxBaseEnvironment(ABC):
         pass
 
     @abstractmethod
-    def render(self, mode: str = "human") -> None:
+    def render(self) -> None:
         pass
 
     @abstractmethod
@@ -35,14 +35,6 @@ class ApproxBaseEnvironment(ABC):
 
     @abstractmethod
     def get_action_space(self) -> gym.spaces.Space:
-        pass
-
-    @abstractmethod
-    def is_state_terminal(self, state: Hashable) -> bool:
-        pass
-
-    @abstractmethod
-    def get_available_actions(self, state: Hashable = None) -> List[Hashable]:
         pass
 
     def get_available_options(self, state: Hashable, exploration: bool = False) -> List["BaseOption"]:
@@ -108,8 +100,8 @@ class GymWrapper(ApproxBaseEnvironment):
     def step(self, action: Hashable, state: Hashable = None) -> Tuple[Hashable, float, bool, bool, dict]:
         return self.env.step(action)
 
-    def render(self, mode: str = "human") -> None:
-        return self.env.render(mode)
+    def render(self) -> None:
+        return self.env.render()
 
     def close(self) -> None:
         return self.env.close()
