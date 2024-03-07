@@ -84,6 +84,14 @@ class ApproxBaseEnvironment(ABC):
 
         assert self.options.isdisjoint(self.exploration_option)
 
+        # Update the action space to be a discrete set of all available options.
+        self.action_space = gym.spaces.Discrete(len(self.options))
+
+        # Maintain a mapping from action indices to options, so we can map network outputs to options.
+        self.action_to_option = {i: option for i, option in enumerate(self.options)}
+        # TODO: Handle the case where we're updating the set of options. Some options may already exist in the mapping,
+        # some options may have been removed from the mapping, and some options may not yet exist in the mapping.
+
 
 class GymWrapper(ApproxBaseEnvironment):
     """
