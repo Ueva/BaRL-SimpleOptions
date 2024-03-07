@@ -1,5 +1,8 @@
 from random import choices
-from collections import deque
+from collections import deque, namedtuple
+
+PrimitiveTransition = namedtuple("Transition", ("state", "action", "next_state", "reward", "terminal"))
+OptionTransition = namedtuple("Transition", ("option", "states", "rewards", "terminal"))
 
 
 class ReplayBuffer(object):
