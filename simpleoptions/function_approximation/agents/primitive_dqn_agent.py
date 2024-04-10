@@ -56,44 +56,10 @@ class DQN:
 
     def select_action(self, state, test=False):
         if random.random() < self.epsilon and test == False:
-            return torch.tensor([[self.env.action_space.sample()]], dtype=torch.long)
+            return self.env.action_space.sample()
         else:
             with torch.no_grad():
-                return torch.argmax(self.forward(state)).item()
-
-    def warm_up(self, warmup_length: int):
-
-        warmup_time_step = 0
-        while warmup_time_step < warmup_length:
-
-            # Initialise state variables.
-            state = self.env.reset()
-            state = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-            terminal = False
-
-            while not terminal:
-                # Randomly select an action.
-                action = torch.tensor([[self.env.action_space.sample()]], dtype=torch.long)
-
-                # Execute the action, observe the next state and reward.
-                observation, reward, terminal, _, _ = self.env.step(action)
-
-                if not terminal:
-                    next_state = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
-                else:
-                    next_state = None
-
-                reward = torch.tensor([reward], dtype=torch.float32)
-
-                # Add experience to the replay buffer.
-                self.buffer.add(state, action, reward, next_state, terminal)
-
-                state = next_state
-
-                warmup_time_step += 1
-
-                if warmup_time_step >= warmup_length:
-                    terminal = True
+                return torch.argmax(self.online.forward(state)).item()
 
     def update_online_network(self):
         for _ in range(self.num_updates):
@@ -130,8 +96,42 @@ class DQN:
     def update_target_network(self):
         tau = self.tau
         for p_o, p_t in zip(self.online.parameters(), self.target.parameters()):
-            p_t.data.copy(tau * p_o.data + (1 - tau) * p_t.data)
+            p_t.data.copy_(tau * p_o.data + (1 - tau) * p_t.data)
             p_t.requires_grad = False
+
+    def warm_up(self, warmup_length: int):
+
+        warmup_time_step = 0
+        while warmup_time_step < warmup_length:
+
+            # Initialise state variables.
+            state, _ = self.env.reset()
+            state = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+            terminal = False
+
+            while not terminal:
+                # Randomly select an action.
+                action = torch.tensor([[self.env.action_space.sample()]], dtype=torch.long)
+
+                # Execute the action, observe the next state and reward.
+                observation, reward, terminal, _, _ = self.env.step(action.item())
+
+                if not terminal:
+                    next_state = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
+                else:
+                    next_state = None
+
+                reward = torch.tensor([reward], dtype=torch.float32)
+
+                # Add experience to the replay buffer.
+                self.buffer.add(state, action, reward, next_state, terminal)
+
+                state = next_state
+
+                warmup_time_step += 1
+
+                if warmup_time_step >= warmup_length:
+                    terminal = True
 
     def run_agent(
         self,
@@ -141,10 +141,13 @@ class DQN:
         test_interval: int = 0,
         test_length: int = 0,
         test_runs: int = 0,
-        verbose_logging: bool = True,
+        verbose_logging: bool = False,
         episodic_eval: bool = False,
         warmup_length: int = 0,
     ) -> Tuple[DefaultDict, DefaultDict | None]:
+
+        if warmup_length > 0:
+            self.warm_up(warmup_length)
 
         # Set the time-step limit.
         num_time_steps = num_epochs * epoch_length
@@ -163,7 +166,7 @@ class DQN:
 
         while time_steps < num_time_steps:
             # Initialise state variables.
-            state = self.env.reset()
+            state, _ = self.env.reset()
             state = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
             terminal = False
 
@@ -173,10 +176,10 @@ class DQN:
 
             while not terminal:
                 # Select an action.
-                action = self.select_action(state)
+                action = torch.tensor([[self.select_action(state)]], dtype=torch.long)
 
                 # Execute the action, observe the next state and reward.
-                observation, reward, terminal, _, _ = self.env.step(action)
+                observation, reward, terminal, _, _ = self.env.step(action.item())
 
                 if not terminal:
                     next_state = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
@@ -196,8 +199,13 @@ class DQN:
 
                 time_steps += 1
 
+                # Render initial state.
+                if render_interval > 0 and time_steps % render_interval == 0:
+                    self.env.render()
+
                 if time_steps >= num_time_steps:
                     terminal = True
+
             episodes += 1
 
 
@@ -205,14 +213,16 @@ if __name__ == "__main__":
     from torchinfo import summary
 
     from simpleoptions.function_approximation.utils.network_builders import CriticNetworkFC
-    from simpleenvs.envs.continuous_rooms import ContinuousRooms
+    from simpleenvs.envs.continuous_rooms import ContinuousFourRooms
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = "cpu"
     torch.set_default_device(device)
 
-    env = gym.make("Acrobot-v1")
-    test_env = gym.make("Acrobot-v1")
+    # env = gym.make("Acrobot-v1")
+    # test_env = gym.make("Acrobot-v1")
+    env = ContinuousFourRooms(render_mode="human")
+    test_env = ContinuousFourRooms(render_mode="human")
     obs_dim = len(env.observation_space.sample().flatten())
     act_dim = env.action_space.n
 
@@ -221,15 +231,17 @@ if __name__ == "__main__":
         test_env,
         network=CriticNetworkFC(obs_dim, act_dim),
         alpha=0.001,
-        epsilon=0.05,
+        epsilon=0.15,
         gamma=0.9999,
-        tau=0.001,
-        buffer_capacity=10_000,
+        tau=0.01,
+        buffer_capacity=100_000,
         batch_size=8,
-        num_updates=8,
+        num_updates=1,
     )
 
     print(agent.online)
     print(agent.target)
     summary(agent.online, input_size=(1, obs_dim), device=device)
     print(f"obs_dim: {obs_dim}, act_dim: {act_dim}")
+
+    agent.run_agent(num_epochs=100, epoch_length=100, warmup_length=1024, render_interval=0)

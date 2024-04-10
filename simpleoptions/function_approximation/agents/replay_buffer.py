@@ -1,7 +1,7 @@
 from random import choices
 from collections import deque, namedtuple
 
-PrimitiveTransition = namedtuple("Transition", ("state", "action", "next_state", "reward", "terminal"))
+PrimitiveTransition = namedtuple("Transition", ("state", "action", "reward", "next_state", "terminal"))
 OptionTransition = namedtuple("Transition", ("option", "states", "rewards", "terminal"))
 
 
