@@ -123,6 +123,7 @@ class CriticNetworkFC(nn.Module):
         self.critic_out = torch.nn.Linear(64, act_dim)
 
     def forward(self, x):
+
         x = self.f1(x)
         x = self.prelu1(x)
         x = self.f2(x)

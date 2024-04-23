@@ -48,6 +48,7 @@ class DQN:
         # Initialise replay memory.
         self.buffer = ReplayBuffer(buffer_capacity)
 
+        # Initialise hyperparameters.
         self.tau = tau
         self.gamma = gamma
         self.epsilon = epsilon
@@ -199,7 +200,7 @@ class DQN:
 
                 time_steps += 1
 
-                # Render initial state.
+                # Render state.
                 if render_interval > 0 and time_steps % render_interval == 0:
                     self.env.render()
 
@@ -214,6 +215,7 @@ if __name__ == "__main__":
 
     from simpleoptions.function_approximation.utils.network_builders import CriticNetworkFC
     from simpleenvs.envs.continuous_rooms import ContinuousFourRooms
+    from simpleoptions.function_approximation import GymWrapper
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = "cpu"
@@ -221,7 +223,7 @@ if __name__ == "__main__":
 
     # env = gym.make("Acrobot-v1")
     # test_env = gym.make("Acrobot-v1")
-    env = ContinuousFourRooms(render_mode="human")
+    env = GymWrapper(ContinuousFourRooms(render_mode="human"))
     test_env = ContinuousFourRooms(render_mode="human")
     obs_dim = len(env.observation_space.sample().flatten())
     act_dim = env.action_space.n
