@@ -84,11 +84,19 @@ class MacroDQN:
     ):  # TODO: Implement option masking based on initiation sets.
         # If no options are currently executing, select an action using the online network.
         if len(executing_options) == 0:
+            # Get currently available options.
+            available_options_idx = self.env.get_available_options(state, get_indices=True)
+
             if self.rng.random() < self.epsilon and test == False:
-                return self.env.action_space.sample()
+                return self.rng.choice(available_options_idx)
             else:
                 with torch.no_grad():
-                    return torch.argmax(self.online.forward(state)).item()
+                    vals = self.online.forward(state)
+                    mask = torch.tensor(
+                        [[1 if i in available_options_idx else -float("inf") for i in range(self.env.option_space.n)]]
+                    )
+                    action = torch.argmax(vals * mask).item()
+                    return action
         # Otherwise, select according to the currently executing option's policy.
         else:
             return executing_options[-1].policy(state, test)
@@ -102,9 +110,6 @@ class MacroDQN:
             state_batch = torch.cat(batch.state)
             action_batch = torch.cat(batch.action)
             reward_batch = torch.cat(batch.reward)
-
-            print(batch)
-            print()
 
             # Mask for terminal/non-terminal next states.
             non_terminal_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.bool)
@@ -315,4 +320,4 @@ if __name__ == "__main__":
     summary(agent.online, input_size=(1, obs_dim), device=device)
     print(f"obs_dim: {obs_dim}, act_dim: {act_dim}")
 
-    agent.run_agent(num_epochs=100, epoch_length=100, render_interval=2)
+    agent.run_agent(num_epochs=100, epoch_length=100, render_interval=10)

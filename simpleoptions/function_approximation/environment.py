@@ -38,25 +38,32 @@ class ApproxBaseEnvironment(ABC):
     def get_action_space(self) -> gym.spaces.Space:
         pass
 
-    def get_available_options(self, state: Hashable, exploration: bool = False) -> List["BaseOption"]:
+    def get_available_options(
+        self, state: Hashable, exploration: bool = False, get_indices: bool = False
+    ) -> List["BaseOption"]:
         """
         Returns the list of options available in the given state.
 
         Args:
             state (Hashable, optional): The state to check option availability in. Defaults to None, in which case the current state is used.
             exploration (bool, optional): Whether to include options available only for exploration. Defaults to False.
+            get_indices (bool, optional): Whether to return the indices of the selected options instead of the options themselves. Defaults to False. Not compatible with exploration=True.
 
         Returns:
             List[BaseOption]: The set of options available in the given state.
         """
+        if exploration and get_indices:
+            raise ValueError(
+                "Cannot get indices of exploration options. `exploration` and `get_indices` are mutually exclusive."
+            )
+
         if state is None:
             state = self.current_state
 
-        # By definition, no options are available in a terminal state.
-        if self.is_state_terminal(state):
-            return []
-
-        available_options = [option for option in self.options if option.initiation(state)]
+        if not get_indices:
+            available_options = [option for option in self.options if option.initiation(state)]
+        else:
+            available_options = [self.option_to_index[option] for option in self.options if option.initiation(state)]
 
         if exploration:
             available_options.extend([option for option in self.exploration_options if option.initiation(state)])
