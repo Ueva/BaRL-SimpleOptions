@@ -203,7 +203,7 @@ class BaseEnvironment(ABC):
     @abstractmethod
     def get_successors(
         self, state: Hashable = None, actions: List[Hashable] = None
-    ) -> List[Tuple[Hashable, float, float]]:
+    ) -> List[Tuple[Tuple[Hashable, float], float]]:
         """
         Returns a list of next-states and rewards that can be reached by taking an action in the given state, and the probabilities
         of transitioning to each of them.
