@@ -154,6 +154,7 @@ class BaseEnvironment(ABC):
         Sets the set of options available in this environment.
         By default, replaces the current list of available options. If you wish to extend the
         list of currently avaialble options, set the `append` parameter to `True`.
+
         Args:
             new_options (List[BaseOption]): The list of options to make avaialble.
             append (bool, optional): Whether to append the new options to the current set of options. Defaults to False.
@@ -218,21 +219,36 @@ class BaseEnvironment(ABC):
         """
         pass
 
-    def generate_interaction_graph(self, directed=False) -> "nx.DiGraph":
+    def generate_interaction_graph(self, directed=True, weighted=False) -> "nx.DiGraph":
         """
         Returns a NetworkX DiGraph representing the state-transition graph for this environment.
+
+        Arguments:
+            directed (bool, optional): Whether the state-transition graph should be directed. Defaults to True.
+            weighted (bool, optional): Whether the state-transition graph should be weighted. Defaults to False.
+
+        Raises:
+            ValueError: If weighted is True and directed is False. Weighted graphs must be directed.
 
         Returns:
             nx.DiGraph: A NetworkX DiGraph representing the state-transition graph for this environment. Nodes are states, edges are possible transitions, edge weights are one.
         """
 
+        if weighted and not directed:
+            raise ValueError("Weighted graphs must be directed.")
+
+        if not weighted:
+            return self._generate_interaction_graph_unweighted(directed=directed)
+        else:
+            return self._generate_interaction_graph_weighted()
+
+    def _generate_interaction_graph_unweighted(self, directed=False) -> "nx.DiGraph":
         # Generates a list of all reachable states, starting the search from the environment's initial states.
         states = []
         current_successor_states = self.get_initial_states()
 
-        # Brute force construction of the state-transition graph. Starts with initial
-        # states, then tries to add possible successor states until no new successor states
-        # can be added. This can take quite a while for environments with a large state-space.
+        # Brute force construction of the state-transition graph. Starts with initial states,
+        # then tries to add possible successor states until no new successor states can be added.
         while not len(current_successor_states) == 0:
             next_successor_states = []
             for successor_state in current_successor_states:
@@ -242,6 +258,7 @@ class BaseEnvironment(ABC):
                     if not self.is_state_terminal(successor_state):
                         new_successors = self.get_successors(successor_state)
                         for (new_successor_state, _), _ in new_successors:
+                            print(new_successor_state)
                             next_successor_states.append(new_successor_state)
 
             current_successor_states = copy.deepcopy(next_successor_states)
@@ -260,6 +277,48 @@ class BaseEnvironment(ABC):
             for (successor_state, _), _ in successors:
                 stg.add_node(successor_state)
                 stg.add_edge(state, successor_state)
+
+        return stg
+
+    def _generate_interaction_graph_weighted(self) -> "nx.DiGraph":
+        # Generates a list of all reachable states, starting the search from the environment's initial states.
+        states = []
+        current_successor_states = self.get_initial_states()
+
+        # Brute force construction of the state-transition graph. Starts with initial states,
+        # then tries to add possible successor states until no new successor states can be added.
+        while not len(current_successor_states) == 0:
+            next_successor_states = []
+            for successor_state in current_successor_states:
+                if not successor_state in states:
+                    states.append(successor_state)
+
+                    if not self.is_state_terminal(successor_state):
+                        new_successors = self.get_successors(successor_state)
+                        for (new_successor_state, _), _ in new_successors:
+                            next_successor_states.append(new_successor_state)
+
+            current_successor_states = copy.deepcopy(next_successor_states)
+
+        # Build state-transition graph with multiple edges between each pair of nodes.
+        multi_stg = nx.MultiDiGraph()
+        for state in states:
+            # Add node for state.
+            multi_stg.add_node(state)
+
+            # Add directed edge between node and its successors.
+            for (successor, _), transition_prob in self.get_successors(state):
+                multi_stg.add_node(successor)
+                multi_stg.add_edge(state, successor, weight=transition_prob)
+
+        # Convert MultiDiGraph into DiGraph with at most one edge between any two nodes.
+        stg = nx.DiGraph()
+        for u, v, data in multi_stg.edges(data=True):
+            w = data["weight"] if "weight" in data else 1.0
+            if stg.has_edge(u, v):
+                stg[u][v]["weight"] += w
+            else:
+                stg.add_edge(u, v, weight=w)
 
         return stg
 
