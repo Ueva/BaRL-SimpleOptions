@@ -258,7 +258,6 @@ class BaseEnvironment(ABC):
                     if not self.is_state_terminal(successor_state):
                         new_successors = self.get_successors(successor_state)
                         for (new_successor_state, _), _ in new_successors:
-                            print(new_successor_state)
                             next_successor_states.append(new_successor_state)
 
             current_successor_states = copy.deepcopy(next_successor_states)
@@ -301,24 +300,20 @@ class BaseEnvironment(ABC):
             current_successor_states = copy.deepcopy(next_successor_states)
 
         # Build state-transition graph with multiple edges between each pair of nodes.
-        multi_stg = nx.MultiDiGraph()
+        stg = nx.DiGraph()
         for state in states:
             # Add node for state.
-            multi_stg.add_node(state)
+            stg.add_node(state)
 
             # Add directed edge between node and its successors.
-            for (successor, _), transition_prob in self.get_successors(state):
-                multi_stg.add_node(successor)
-                multi_stg.add_edge(state, successor, weight=transition_prob)
+            successors = self.get_successors(state)
+            for (successor_state, _), transition_prob in successors:
 
-        # Convert MultiDiGraph into DiGraph with at most one edge between any two nodes.
-        stg = nx.DiGraph()
-        for u, v, data in multi_stg.edges(data=True):
-            w = data["weight"] if "weight" in data else 1.0
-            if stg.has_edge(u, v):
-                stg[u][v]["weight"] += w
-            else:
-                stg.add_edge(u, v, weight=w)
+                stg.add_node(successor_state)
+                if stg.has_edge(state, successor_state):
+                    stg[state][successor_state]["weight"] += transition_prob
+                else:
+                    stg.add_edge(state, successor_state, weight=transition_prob)
 
         return stg
 
@@ -350,7 +345,7 @@ class TransitionMatrixBaseEnvironment(BaseEnvironment):
         # Otherwise, we sample a next state and reward based on the transition matrix.
         else:
             outcomes, probabilities = zip(*self.transition_matrix[(state, action)])
-            (next_state, reward) = random.choices(outcomes, probabilities)
+            (next_state, reward) = random.choices(outcomes, probabilities, k=1)[0]
 
         # Determine whether the next state is terminal.
         terminal = self.is_state_terminal(next_state)
