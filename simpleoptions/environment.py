@@ -287,11 +287,11 @@ class TransitionMatrixBaseEnvironment(BaseEnvironment):
     def step(self, action, state=None):
         # If the environment is deterministic, we can simply return the next state and reward.
         if self.deterministic:
-            (next_state, reward), _ = self.transition_matrix[(self.current_state, action)][0]
+            (next_state, reward), _ = self.transition_matrix[(state, action)][0]
         # Otherwise, we sample a next state and reward based on the transition matrix.
         else:
-            outcomes, probabilities = zip(*self.transition_matrix[(self.current_state, action)])
-            (next_state, reward), _ = random.choices(outcomes, probabilities)
+            outcomes, probabilities = zip(*self.transition_matrix[(state, action)])
+            (next_state, reward) = random.choices(outcomes, probabilities)
 
         # Determine whether the next state is terminal.
         terminal = self.is_state_terminal(next_state)
