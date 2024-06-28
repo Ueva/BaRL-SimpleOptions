@@ -264,7 +264,7 @@ class BaseEnvironment(ABC):
         return stg
 
 
-class TransititonMatrixBaseEnvironment(BaseEnvironment):
+class TransitionMatrixBaseEnvironment(BaseEnvironment):
     def __init__(self, deterministic: bool = True):
         self.deterministic = deterministic
         super().__init__()
