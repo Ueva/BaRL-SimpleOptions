@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 class BaseOption(ABC):
     """
-    Interface for a hierarchical reinforcement learning option.
+    Interface for a behaviour represented using the options framework in hierarchical reinforcement learning.
     """
 
     def __init__(self):
@@ -53,4 +53,30 @@ class BaseOption(ABC):
 
     @abstractmethod
     def __hash__(self):
+        pass
+
+
+class PseudoRewardOption(BaseOption):
+    """
+    Interface for a behaviour, represented using the options framework in hierarchical
+    reinforcement learning, which acts to maximise a specific pseudo-reward signal.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def psuedo_reward(self, state: Hashable, action: Hashable, next_state: Hashable) -> float:
+        """
+        Returns this option's pseudo-reward for transitioning from `state` to `next_state` via `action`.
+        It is this pseudo-reward signal that this option's policy should aim to maximise.
+
+        Args:
+            state (Hashable): The state being transitioned *from*.
+            action (Hashable): The action being transitioned *via*.
+            next_state (Hashable): The state being transitioned *to*.
+
+        Returns:
+            float: the pseudo-reward signal for transitioning from `state` to `next_state` via `action`.
+        """
         pass
