@@ -11,6 +11,7 @@ from typing import Tuple, Hashable, List, Union, DefaultDict
 
 from simpleoptions.option import BaseOption
 from simpleoptions.environment import BaseEnvironment
+from simpleoptions.utils.math import discounted_return
 
 
 class OptionAgent:
@@ -103,7 +104,7 @@ class OptionAgent:
             old_value = self.q_table[(hash(initiation_state), hash(option))]
 
             # Compute discounted sum of rewards.
-            discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
+            discounted_sum_of_rewards = discounted_return(rewards[i:], self.gamma)
 
             # Get Q-Values for Next State.
             if not self.env.is_state_terminal(termination_state):
@@ -158,7 +159,7 @@ class OptionAgent:
                     old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
-                    discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
+                    discounted_sum_of_rewards = discounted_return(rewards[i:], self.gamma)
 
                     if not self.env.is_state_terminal(termination_state):
                         # If the option terminates, we consider the value of the next best option.
@@ -462,18 +463,6 @@ class OptionAgent:
             test_total_rewards[test_run] = cumulative_reward
 
         return statistics.mean(test_total_rewards)
-
-    def _discounted_return(self, rewards: List[float], gamma: float) -> float:
-        # Computes the discounted reward given an ordered list of rewards, and a discount factor.
-        num_rewards = len(rewards)
-
-        # Fill an array with gamma^index for index = 0 to index = num_rewards - 1.
-        gamma_exp = np.power(np.full(num_rewards, gamma), np.arange(0, num_rewards))
-
-        # Element-wise multiply and then sum array.
-        discounted_sum_of_rewards = np.sum(np.multiply(rewards, gamma_exp))
-
-        return discounted_sum_of_rewards
 
     def _roll_termination(self, option: "BaseOption", state: Hashable):
         # Rolls on whether or not the given option terminates in the given state.
