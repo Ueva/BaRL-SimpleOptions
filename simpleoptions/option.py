@@ -66,7 +66,7 @@ class PseudoRewardOption(BaseOption):
         super().__init__()
 
     @abstractmethod
-    def psuedo_reward(self, state: Hashable, action: Hashable, next_state: Hashable) -> float:
+    def pseudo_reward(self, state: Hashable, action: Hashable, next_state: Hashable) -> float:
         """
         Returns this option's pseudo-reward for transitioning from `state` to `next_state` via `action`.
         It is this pseudo-reward signal that this option's policy should aim to maximise.
