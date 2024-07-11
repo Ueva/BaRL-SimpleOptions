@@ -24,6 +24,8 @@ class BaseEnvironment(ABC):
         """
         self._options = set()
         self.exploration_options = set()
+        self._option_availability_maps = {}
+        self._exploration_option_availability_maps = {}
         self.current_state = None
 
     @abstractmethod
@@ -126,7 +128,7 @@ class BaseEnvironment(ABC):
         Returns a set containing all of the options available in this environment.
 
         Returns:
-            Set[BaseOption]: All possible options in this environment.
+            Set[BaseOption]: All possible options available in this environment.
         """
         return self._options
 
@@ -150,11 +152,9 @@ class BaseEnvironment(ABC):
             return []
         # Otherwise, options whose initiation set contains the given state are returned.
         else:
-            # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
-            available_options = [option for option in self._options if option.initiation(state)]
-
+            available_options = copy.copy(self._option_availability_maps.get(state, list()))
             if exploration:
-                available_options.extend([option for option in self.exploration_options if option.initiation(state)])
+                available_options.extend(copy.copy(self._exploration_option_availability_maps.get(state, list())))
 
             return available_options
 
@@ -173,6 +173,13 @@ class BaseEnvironment(ABC):
         else:
             self._options.update(copy.copy(new_options))
 
+        self._option_availability_maps = {}
+        for state in self.get_state_space():
+            for option in self._options:
+                if option.initiation(state):
+                    self._option_availability_maps[state] = self._option_availability_maps.get(state, list())
+                    self._option_availability_maps[state].append(option)
+
     def set_exploration_options(self, new_options: List["BaseOption"], append: bool = False) -> None:
         """
         Sets the set of options available solely for exploration in this environment.
@@ -186,6 +193,15 @@ class BaseEnvironment(ABC):
             self.exploration_options = set(copy.copy(new_options))
         else:
             self.exploration_options.update(copy.copy(new_options))
+
+        self._exploration_option_availability_maps = {}
+        for state in self.get_state_space():
+            for exploration_option in self.exploration_options:
+                if exploration_option.initiation(state):
+                    self._exploration_option_availability_maps[state] = self._exploration_option_availability_maps.get(
+                        state, list()
+                    )
+                    self._exploration_option_availability_maps[state].append(exploration_option)
 
     @abstractmethod
     def is_state_terminal(self, state: Hashable = None) -> bool:
