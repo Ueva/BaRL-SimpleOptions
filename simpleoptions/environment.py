@@ -22,7 +22,7 @@ class BaseEnvironment(ABC):
         """
         Constructs a new environment object.
         """
-        self.options = set()
+        self._options = set()
         self.exploration_options = set()
         self.current_state = None
 
@@ -121,6 +121,15 @@ class BaseEnvironment(ABC):
         """
         pass
 
+    def get_option_space(self) -> Set["BaseOption"]:
+        """
+        Returns a set containing all of the options available in this environment.
+
+        Returns:
+            Set[BaseOption]: All possible options in this environment.
+        """
+        return self._options
+
     def get_available_options(self, state: Hashable, exploration=False) -> List["BaseOption"]:
         """
         This method returns the options (primitive options + subgoal options) which are available to the
@@ -142,7 +151,7 @@ class BaseEnvironment(ABC):
         # Otherwise, options whose initiation set contains the given state are returned.
         else:
             # Lists all options (including options corresponding to primitive actions) which have the given state in their initiation sets.
-            available_options = [option for option in self.options if option.initiation(state)]
+            available_options = [option for option in self._options if option.initiation(state)]
 
             if exploration:
                 available_options.extend([option for option in self.exploration_options if option.initiation(state)])
@@ -160,9 +169,9 @@ class BaseEnvironment(ABC):
             append (bool, optional): Whether to append the new options to the current set of options. Defaults to False.
         """
         if not append:
-            self.options = set(copy.copy(new_options))
+            self._options = set(copy.copy(new_options))
         else:
-            self.options.update(copy.copy(new_options))
+            self._options.update(copy.copy(new_options))
 
     def set_exploration_options(self, new_options: List["BaseOption"], append: bool = False) -> None:
         """
