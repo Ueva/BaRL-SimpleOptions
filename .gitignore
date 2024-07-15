@@ -107,3 +107,6 @@ venv.bak/
 # Debug graph files.
 *.gexf
 *.gephi
+
+# Debug test files.
+test.py
