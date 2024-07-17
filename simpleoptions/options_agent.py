@@ -248,7 +248,7 @@ class OptionAgent:
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
             test_runs (int, optional): How many test runs to perform each test_interval.
             verbose_logging (bool, optional): Whether to log all information about each time-step, instead of just rewards. Defaults to True.
-
+            episodic_eval (bool, optional): Whether to evaluate the agent for full episodes (truncated to test_length), instead of a fixed number of time-steps. Defaults to False.
         Returns:
             Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
         """
