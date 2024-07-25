@@ -23,4 +23,16 @@ When using Black to format your code pass in `--line-length 120` and leave all o
 Both regular Python (.py) and Jupyter notebook (.ipynb) files should be formatted.
 
 You can check whether your code is formatted correctly by checking that our Black formatting GitHub action runs successfully.
-If it fails, check the action's logs to see which file is the culprit, and fix it before trying again.
+If it fails, check the action's logs to see which file is the culprit, and fix it (usually by running Black) before trying again.
+
+## Versioning
+
+SimpleOptions uses semantic versioning. We haven't always done so in the past, but we are doing so now. When you make a pull request, how you change the version number depends on how your pull request changes the public API (i.e., the classes, methods, and functions that developers will interact with when they use SimpleOptions).
+
+If your pull request includes a non-backward-compatible change to the public API, you should increment the major release number (e.g., `0.8.3` → `1.0.0`).
+
+If your pull request includes a backward compatible change to the public API, you should increment the minor release number (e.g., `0.8.3` → `0.9.0`).
+
+If your pull request only includes minor changes that are backward compatible and do not not change the public API in any way, you should increment the patch number (e.g., `0.8.3` → `0.8.4`).
+
+If in doubt, ask for the version number to be changed for you when you create your pull request.
