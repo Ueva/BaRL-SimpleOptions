@@ -108,5 +108,5 @@ venv.bak/
 *.gexf
 *.gephi
 
-# Debug test files.
-test.py
+# Debug scratchpad files.
+scratchpad.py
