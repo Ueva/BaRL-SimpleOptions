@@ -38,13 +38,15 @@ class OptionAgent:
         Constructs a new OptionAgent object.
 
         Arguments:
-            env {Environment} -- The environment for the agent to act in.
+            env {BaseEnvironment} -- The environment to train the agent in.
+            test_env {BaseEnvironment} -- The environment to evaluate the agent in.
             epsilon {float} -- The chance of the agent taking a random action when following its base policy. Defaults to 0.15.
-            alpha {float} -- The learning rate used in the Macro-Q Learning updates. Defaults to 0.2.
-            alpha {float} -- The learning rate used in the Intra-Option Learning updates. Deafults to 0.2.
+            macro_q_alpha {float} -- The learning rate used in the Macro-Q Learning updates. Defaults to 0.2.
+            intra_option_alpha {float} -- The learning rate used in the Intra-Option Learning updates. Deafults to 0.2.
             gamma {float} -- The environment's discount factor. Defaults to 1.0.
             default_action_value {float} -- The value to initialise all action-values to. Defaults to 0.0.
             n_step_updates {bool} -- Whether to perform n-step updates (not guaranteed to be consistent at this time). Defaults to False.
+            rng {RNG} -- A numpy random number generator to use for random number generation. Defaults to None.
         """
 
         self.q_table = defaultdict(lambda: default_action_value)
@@ -248,7 +250,7 @@ class OptionAgent:
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
             test_runs (int, optional): How many test runs to perform each test_interval.
             verbose_logging (bool, optional): Whether to log all information about each time-step, instead of just rewards. Defaults to True.
-
+            episodic_eval (bool, optional): Whether to evaluate the agent for full episodes (truncated to test_length), instead of a fixed number of time-steps. Defaults to False.
         Returns:
             Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
         """
