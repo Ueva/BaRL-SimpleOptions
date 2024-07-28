@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from copy import copy
 
 from simpleoptions.option import BaseOption
-from simpleoptions.function_approximation.primitive_option import PrimitiveOption
 
 
 class ApproxBaseEnvironment(ABC):
@@ -14,29 +13,16 @@ class ApproxBaseEnvironment(ABC):
     Abstract base class for environments requiring function approximation. Very similar to OpenAI Gym environments.
     To implement your own environment, you should subclass this class and implement its abstract methods.
     Additionally, you should use gymnasium `spaces` to define state and action spaces.
-
-    Args:
-        ABC (_type_): _description_
     """
 
-    def __init__(self, include_primitive_options: bool = True, render_mode: str = "human"):
+    def __init__(self, render_mode: str = "human"):
+
+        self.render_mode = render_mode
 
         # Create initial option sets.
-        self._primitive_options = {PrimitiveOption(action) for action in self.get_action_space().n}
         self._options = list()
         self._exploration_options = list()
-
-        if include_primitive_options:
-            self._options.extend(self._primitive_options)
-
-        # The initial option space contains only primitive actions.
-        if len(self._options) > 0:
-            self.option_space = gym.spaces.Discrete(len(self.options))
-        else:
-            self.option_space = None
-
-        self.include_primitive_options = include_primitive_options
-        self.render_mode = render_mode
+        self.option_space = None
 
         self.current_state = None
 
@@ -173,11 +159,6 @@ class ApproxBaseEnvironment(ABC):
         # Replace the existing set of options with a new set of options.
         if not append:
             self._options = []
-
-            # Include primitive options if required.
-            if self.include_primitive_options:
-                self._options.extend(self._primitive_options)
-
             self._options.extend(new_options)
         # Append the new set of options to the existing set of options.
         else:
@@ -185,7 +166,7 @@ class ApproxBaseEnvironment(ABC):
             options_to_add = [option for option in new_options if option not in existing_options]
             self._options.extend(options_to_add)
 
-        # Update the action space to be a discrete set of all available options + primitive actions.
+        # Update the action space to be a discrete set of all available options.
         self.option_space = gym.spaces.Discrete(len(self._options))
 
         # Maintain mappings between option indices and options, so we can map network outputs to options.
