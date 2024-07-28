@@ -15,9 +15,7 @@ class ApproxBaseEnvironment(ABC):
     Additionally, you should use gymnasium `spaces` to define state and action spaces.
     """
 
-    def __init__(self, render_mode: str = "human"):
-
-        self.render_mode = render_mode
+    def __init__(self):
 
         # Create initial option sets.
         self._options = list()
