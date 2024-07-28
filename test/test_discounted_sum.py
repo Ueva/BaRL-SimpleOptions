@@ -1,6 +1,6 @@
 import pytest
 
-from simpleoptions import OptionAgent
+from simpleoptions.utils.math import discounted_return
 
 
 # Test single reward.
@@ -9,7 +9,7 @@ def test_discounted_reward_single():
     gamma = 0.9
     correct_discounted_reward = 1
 
-    discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
+    discounted_reward = discounted_return(rewards, gamma)
 
     assert discounted_reward == correct_discounted_reward
 
@@ -20,7 +20,7 @@ def test_discounted_reward_multiple():
     gamma = 0.9
     correct_discounted_reward = 1 * gamma**0 + 2 * gamma**1 + 3 * gamma**2 + 4 * gamma**3 + 5 * gamma**4
 
-    discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
+    discounted_reward = discounted_return(rewards, gamma)
 
     assert discounted_reward == correct_discounted_reward
 
@@ -31,7 +31,7 @@ def test_discounted_reward_zero():
     gamma = 0.9
     correct_discounted_reward = 0
 
-    discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
+    discounted_reward = discounted_return(rewards, gamma)
 
     assert discounted_reward == correct_discounted_reward
 
@@ -42,6 +42,6 @@ def test_discounted_reward_negative():
     gamma = 0.9
     correct_discounted_reward = -1 * gamma**0 + -2 * gamma**1 + -3 * gamma**2
 
-    discounted_reward = OptionAgent(None)._discounted_return(rewards, gamma)
+    discounted_reward = discounted_return(rewards, gamma)
 
     assert discounted_reward == correct_discounted_reward

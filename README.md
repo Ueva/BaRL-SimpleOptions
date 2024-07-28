@@ -14,7 +14,7 @@ This code was written with tabular, graph-based HRL methods in mind. It's less o
 
 The easiest way to install this package is to simply run `pip install simpleoptions`.
 
-If you want to install from source, download the repository and, in the root directory, run the command `pip install .`
+Alternatively, you can install from source. Simply download this repository and, in the root directory, run the command `pip install .`
 
 ## How to Use This Code
 
@@ -22,13 +22,13 @@ Below, you will find a step-by-step guide introducing the intended workflow for 
 
 ### Step 1: Implement an Environment
 
-The first step to using this framework involves defining an environment for your agents to interact with. This can be done by implementing the methods specified in the `BaseEnvironment` class. If you have previously worked with OpenAI Gym, much of this will be familiar to you, although there are a few additional methods on top of the usual `step` and `reset` that you'll need to implement.
+The first step to using this framework involves defining an environment for your agents to interact with. This can be done by subclassing the `BaseEnvironment` abstract class and filling in the abstract methods. If you have previously worked with OpenAI Gym/Farama Gymnasium, much of this will be familiar to you, although there are a few additional methods on top of the usual `step` and `reset` that you'll need to implement.
 
 ### Step 2: Define Your Options
 
-You must now define/discover options for your agent to use when interacting with its environment. How you go about this is up to you &mdash; this framework allows you to train agents using options, not discover them. An ever-growing number of option discovery methods can be found in the hierarchical reinforcement learning literature.
+You must now define/discover options for your agent to use when interacting with its environment. How you go about this is up to you. An ever-growing number of option discovery methods can be found in the hierarchical reinforcement learning literature. We include some option discovery method implementations in the `implementations` directory.
 
-To define an option, you need to subclass `BaseOption` and implement the following methods:
+To define a new type of option, you need to subclass `BaseOption` and implement the following methods:
 
 - `initiation` - a method that takes a state as its input, and returns whether the option can be invoked in that state.
 - `termination` - a method that takes a state as its input, and returns the probability that the option terminates in that state.
@@ -40,16 +40,12 @@ As an example, consider an example option that takes an agent to a sub-goal stat
 
 Finally, we also include a `PrimitiveOption` that can be used to represent the primitive actions made available by a given environment.
 
-### Step 5: Running an Agent Which Uses Options
+### Step 5: Giving Options to an Agent and Running It in an Environment
 
-Our framework also includes an implementation of Macro-Q Learning and Intra-Option Learning, which can be used to train an agent in an environment with a given set of options.
+This package also includes an `OptionsAgent`, an implementation of an agent that learns using the Macro-Q Learning and Intra-Option Learning algorithms.
 
-Once you have an environment and a set of options, you can instantiate the `OptionsAgent` class and use its `run_agent` method to train it.
+Once you have defined an environment an a set of options, you can instatiate an `OptionsAgent` agent and use its `run_agent` method to train it.
 
-## Example Implementation
+## Example Environments
 
-An complete end-to-end example implementation of a simple environment and set of options can be found [here](https://github.com/Ueva/BaRL-SimpleOptions/tree/master/example).
-
-## Additional Environments
-
-A number of environment implementations based on our `BaseEnvironment` class cna be found [here](https://github.com/Ueva/BaRL_Envs).
+A number of reinforcement learning environments implemented using our `BaseEnvironment` interfaces can be found [here](https://github.com/Ueva/BaRL_Envs).

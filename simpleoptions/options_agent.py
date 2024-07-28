@@ -11,6 +11,7 @@ from typing import Tuple, Hashable, List, Union, DefaultDict
 
 from simpleoptions.option import BaseOption
 from simpleoptions.environment import BaseEnvironment
+from simpleoptions.utils.math import discounted_return
 
 
 class OptionAgent:
@@ -37,13 +38,15 @@ class OptionAgent:
         Constructs a new OptionAgent object.
 
         Arguments:
-            env {Environment} -- The environment for the agent to act in.
+            env {BaseEnvironment} -- The environment to train the agent in.
+            test_env {BaseEnvironment} -- The environment to evaluate the agent in.
             epsilon {float} -- The chance of the agent taking a random action when following its base policy. Defaults to 0.15.
-            alpha {float} -- The learning rate used in the Macro-Q Learning updates. Defaults to 0.2.
-            alpha {float} -- The learning rate used in the Intra-Option Learning updates. Deafults to 0.2.
+            macro_q_alpha {float} -- The learning rate used in the Macro-Q Learning updates. Defaults to 0.2.
+            intra_option_alpha {float} -- The learning rate used in the Intra-Option Learning updates. Deafults to 0.2.
             gamma {float} -- The environment's discount factor. Defaults to 1.0.
             default_action_value {float} -- The value to initialise all action-values to. Defaults to 0.0.
             n_step_updates {bool} -- Whether to perform n-step updates (not guaranteed to be consistent at this time). Defaults to False.
+            rng {RNG} -- A numpy random number generator to use for random number generation. Defaults to None.
         """
 
         self.q_table = defaultdict(lambda: default_action_value)
@@ -103,7 +106,7 @@ class OptionAgent:
             old_value = self.q_table[(hash(initiation_state), hash(option))]
 
             # Compute discounted sum of rewards.
-            discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
+            discounted_sum_of_rewards = discounted_return(rewards[i:], self.gamma)
 
             # Get Q-Values for Next State.
             if not self.env.is_state_terminal(termination_state):
@@ -158,7 +161,7 @@ class OptionAgent:
                     old_value = self.q_table[(hash(initiation_state), hash(other_option))]
 
                     # Compute discounted sum of rewards.
-                    discounted_sum_of_rewards = self._discounted_return(rewards[i:], self.gamma)
+                    discounted_sum_of_rewards = discounted_return(rewards[i:], self.gamma)
 
                     if not self.env.is_state_terminal(termination_state):
                         # If the option terminates, we consider the value of the next best option.
@@ -247,7 +250,7 @@ class OptionAgent:
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
             test_runs (int, optional): How many test runs to perform each test_interval.
             verbose_logging (bool, optional): Whether to log all information about each time-step, instead of just rewards. Defaults to True.
-
+            episodic_eval (bool, optional): Whether to evaluate the agent for full episodes (truncated to test_length), instead of a fixed number of time-steps. Defaults to False.
         Returns:
             Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
         """
@@ -462,18 +465,6 @@ class OptionAgent:
             test_total_rewards[test_run] = cumulative_reward
 
         return statistics.mean(test_total_rewards)
-
-    def _discounted_return(self, rewards: List[float], gamma: float) -> float:
-        # Computes the discounted reward given an ordered list of rewards, and a discount factor.
-        num_rewards = len(rewards)
-
-        # Fill an array with gamma^index for index = 0 to index = num_rewards - 1.
-        gamma_exp = np.power(np.full(num_rewards, gamma), np.arange(0, num_rewards))
-
-        # Element-wise multiply and then sum array.
-        discounted_sum_of_rewards = np.sum(np.multiply(rewards, gamma_exp))
-
-        return discounted_sum_of_rewards
 
     def _roll_termination(self, option: "BaseOption", state: Hashable):
         # Rolls on whether or not the given option terminates in the given state.

@@ -107,3 +107,6 @@ venv.bak/
 # Debug graph files.
 *.gexf
 *.gephi
+
+# Debug scratchpad files.
+scratchpad.py
