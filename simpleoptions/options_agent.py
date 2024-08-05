@@ -63,8 +63,9 @@ class OptionAgent:
         self.env = env
         self.test_env = test_env if test_env is not None else None
 
-        self.evaluation_log = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         self.training_log = defaultdict(list)
+        self.epoch_evaluation_log = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+        self.episodic_evaluation_log = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
     def macro_q_learn(
         self,
@@ -237,6 +238,7 @@ class OptionAgent:
         test_length: int = 0,
         test_runs: int = 10,
         verbose_logging: bool = True,
+        epoch_eval: bool = False,
         episodic_eval: bool = False,
     ) -> Tuple[DefaultDict, DefaultDict | None]:
         """
@@ -250,7 +252,8 @@ class OptionAgent:
             test_length (int, optional): How long (in time-steps) to test the agent for. Zero by default, in which case the agent is tested for one epoch.
             test_runs (int, optional): How many test runs to perform each test_interval.
             verbose_logging (bool, optional): Whether to log all information about each time-step, instead of just rewards. Defaults to True.
-            episodic_eval (bool, optional): Whether to evaluate the agent for full episodes (truncated to test_length), instead of a fixed number of time-steps. Defaults to False.
+            epoch_eval (bool, optional): Whether to evaluate the agent for a full epoch. Defaults to False.
+            episodic_eval (bool, optional): Whether to evaluate the agent for a full episodes (truncated to test_length). Defaults to False.
         Returns:
             Tuple[DefaultDict, DefaultDict | None]: A tuple of dictionaries, (training_logs, evaluation_logs), containing data logs of training and evaluation.
         """
@@ -265,13 +268,23 @@ class OptionAgent:
 
         if test_interval > 0:
             test_interval_time_steps = test_interval * epoch_length
-            evaluation_rewards = [None for _ in range(num_time_steps // test_interval_time_steps)]
+
+            if epoch_eval:
+                epoch_eval_rewards = [None for _ in range(num_epochs // test_interval)]
+            else:
+                epoch_eval_rewards = None
+
+            if episodic_eval:
+                episodic_eval_rewards = [None for _ in range(num_epochs // test_interval)]
+            else:
+                episodic_eval_rewards = None
 
             # Check that a test environment has been provided - if not, raise an error.
             if self.test_env is None:
                 raise RuntimeError("No test_env has been provided specified.")
         else:
-            evaluation_rewards = []
+            epoch_eval_rewards = None
+            episodic_eval_rewards = None
 
         episode = 0
         time_steps = 0
@@ -296,6 +309,7 @@ class OptionAgent:
                 else:
                     time_steps += 1
                     next_state, reward, terminal, __ = self.env.step(selected_option)
+
                     # Logging
                     training_rewards[time_steps - 1] = reward
                     if verbose_logging:
@@ -344,14 +358,25 @@ class OptionAgent:
                     # If we are testing the greedy policy learned by the agent separately,
                     # and it is time to test it, then test it.
                     if test_interval > 0 and time_steps % test_interval_time_steps == 0:
-                        evaluation_rewards[(time_steps - 1) // test_interval_time_steps] = self.test_policy(
-                            test_length,
-                            test_runs,
-                            time_steps // test_interval_time_steps,
-                            allow_exploration=False,
-                            verbose_logging=verbose_logging,
-                            episodic_eval=episodic_eval,
-                        )
+                        if epoch_eval:
+                            epoch_eval_rewards[(time_steps - 1) // test_interval_time_steps] = self.test_policy(
+                                test_length=epoch_length,
+                                test_runs=test_runs,
+                                eval_number=time_steps // test_interval_time_steps,
+                                allow_exploration=False,
+                                verbose_logging=verbose_logging,
+                                episodic_eval=False,
+                            )
+
+                        if episodic_eval:
+                            episodic_eval_rewards[(time_steps - 1) // test_interval_time_steps] = self.test_policy(
+                                test_length=test_length,
+                                test_runs=test_runs,
+                                eval_number=time_steps // test_interval_time_steps,
+                                allow_exploration=False,
+                                verbose_logging=verbose_logging,
+                                episodic_eval=True,
+                            )
 
                 # If we have been training for more than the desired number of time-steps, terminate.
                 if time_steps >= num_time_steps:
@@ -384,13 +409,28 @@ class OptionAgent:
         gc.collect()
 
         if verbose_logging:
-            training_log = self.training_log
-            evaluation_log = self.evaluation_log if self.evaluation_log else None
-            return training_log, evaluation_log
+            if not episodic_eval and not epoch_eval:
+                return self.training_log
+            if epoch_eval and not episodic_eval:
+                return self.training_log, self.epoch_evaluation_log
+            if not epoch_eval and episodic_eval:
+                return self.training_log, self.episodic_evaluation_log
+            if epoch_eval and episodic_eval:
+                return self.training_log, self.epoch_evaluation_log, self.episodic_evaluation_log
+
         else:
-            training_log = [sum(training_rewards[i * epoch_length : (i + 1) * epoch_length]) for i in range(num_epochs)]
-            evaluation_log = evaluation_rewards if evaluation_rewards else None
-            return training_log, evaluation_log
+            training_epoch_rewards = [
+                sum(training_rewards[i * epoch_length : (i + 1) * epoch_length]) for i in range(num_epochs)
+            ]
+
+            if not episodic_eval and not epoch_eval:
+                return training_epoch_rewards
+            if epoch_eval and not episodic_eval:
+                return training_epoch_rewards, epoch_eval_rewards
+            if not epoch_eval and episodic_eval:
+                return training_epoch_rewards, episodic_eval_rewards
+            if epoch_eval and episodic_eval:
+                return training_epoch_rewards, epoch_eval_rewards, episodic_eval_rewards
 
     def test_policy(
         self,
@@ -448,8 +488,14 @@ class OptionAgent:
                             "active_options": [str(option) for option in executing_options],
                         }
                         for key, value in transition.items():
-                            self.evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(value)
-
+                            if not episodic_eval:
+                                self.epoch_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(
+                                    value
+                                )
+                            else:
+                                self.episodic_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][
+                                    key
+                                ].append(value)
                     # Reset environment and continue evaluation run.
                     if terminal and not episodic_eval:
                         state = self.test_env.reset()
