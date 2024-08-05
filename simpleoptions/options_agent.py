@@ -30,7 +30,7 @@ class OptionAgent:
         gamma: float = 1.0,
         default_action_value=0.0,
         n_step_updates=False,
-        rng: RNG = None,
+        rng: "RNG" = None,
         *args,
         **kwargs,
     ):
@@ -240,7 +240,7 @@ class OptionAgent:
         verbose_logging: bool = True,
         epoch_eval: bool = False,
         episodic_eval: bool = False,
-    ) -> Tuple[DefaultDict, DefaultDict | None]:
+    ) -> Tuple[DefaultDict, DefaultDict, DefaultDict | List[float], List[float], List[float]]:
         """
         Trains the agent for a given number of epochs.
 
