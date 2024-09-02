@@ -4,12 +4,20 @@ from abc import ABC, abstractmethod
 
 
 class BaseOption(ABC):
+
+    _class_id_counter = 0
+
     """
     Interface for a behaviour represented using the options framework in hierarchical reinforcement learning.
     """
 
     def __init__(self):
         pass
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._class_id = BaseOption._class_id_counter
+        BaseOption._class_id_counter += 1
 
     @abstractmethod
     def initiation(self, state: Hashable) -> bool:
@@ -53,7 +61,7 @@ class BaseOption(ABC):
 
     @abstractmethod
     def __hash__(self):
-        pass
+        raise NotImplementedError("BaseOption is an abstract class and should not be instantiated directly.")
 
 
 class PseudoRewardOption(BaseOption):
