@@ -48,7 +48,7 @@ class PrimitiveOption(BaseOption):
         return str(self)
 
     def __hash__(self):
-        return hash(str(self))
+        return hash((self._class_id, self.action))
 
     def __eq__(self, other_option):
         if isinstance(other_option, PrimitiveOption):
