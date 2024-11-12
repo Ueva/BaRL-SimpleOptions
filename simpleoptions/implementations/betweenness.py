@@ -78,7 +78,7 @@ class BetweennessOptionGenerator(SubgoalOptionGenerator):
                         stg.nodes[state][f"{option.subgoal} Policy"] = str(option.policy(state))
                     elif state == option.subgoal:
                         stg.nodes[state][f"{option.subgoal} Policy"] = "GOAL"
-            nx.write_gexf(stg, "betweenness_test.gexf", prettyprint=True)
+            # nx.write_gexf(stg, "betweenness_test.gexf", prettyprint=True)
 
         if return_subgoals:
             return options, subgoals
