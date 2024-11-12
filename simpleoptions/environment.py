@@ -175,7 +175,7 @@ class BaseEnvironment(ABC):
 
         self._option_availability_maps = {}
         for state in self.get_state_space():
-            for option in self._options:
+            for option in sorted(self._options, key=lambda x: str(x)): # TODO: temporary fix for repeatability
                 if option.initiation(state):
                     self._option_availability_maps[state] = self._option_availability_maps.get(state, list())
                     self._option_availability_maps[state].append(option)
@@ -196,7 +196,7 @@ class BaseEnvironment(ABC):
 
         self._exploration_option_availability_maps = {}
         for state in self.get_state_space():
-            for exploration_option in self.exploration_options:
+            for exploration_option in sorted(self.exploration_options, key=lambda x: str(x)): # TODO: temporary fix for repeatability
                 if exploration_option.initiation(state):
                     self._exploration_option_availability_maps[state] = self._exploration_option_availability_maps.get(
                         state, list()

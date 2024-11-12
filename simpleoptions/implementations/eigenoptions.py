@@ -99,7 +99,7 @@ class EigenoptionGenerator(GenericOptionGenerator):
                         print(f"PVF {eigenoption.pvf_id} Values")
                     if state in eigenoption.primitive_policy:
                         stg.nodes[state][f"PVF {eigenoption.pvf_id} Policy"] = str(eigenoption.policy(state))
-            nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
+            # nx.write_gexf(stg, "eigen_test.gexf", prettyprint=True)
 
         return eigenoptions, pvfs
 
