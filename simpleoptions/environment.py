@@ -277,7 +277,7 @@ class BaseEnvironment(ABC):
         while not len(current_successor_states) == 0:
             next_successor_states = []
             for successor_state in current_successor_states:
-                if not successor_state in states:
+                if successor_state not in states:
                     states.append(successor_state)
 
                     if not self.is_state_terminal(successor_state):
@@ -314,7 +314,7 @@ class BaseEnvironment(ABC):
         while not len(current_successor_states) == 0:
             next_successor_states = []
             for successor_state in current_successor_states:
-                if not successor_state in states:
+                if successor_state not in states:
                     states.append(successor_state)
 
                     if not self.is_state_terminal(successor_state):

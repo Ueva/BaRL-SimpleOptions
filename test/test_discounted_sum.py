@@ -1,5 +1,3 @@
-import pytest
-
 from simpleoptions.utils.math import discounted_return
 
 

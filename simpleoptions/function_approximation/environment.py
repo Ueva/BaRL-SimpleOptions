@@ -3,7 +3,6 @@ import gymnasium as gym
 
 from typing import List, Dict, Tuple, Hashable
 from abc import ABC, abstractmethod
-from copy import copy
 
 from simpleoptions.option import BaseOption
 

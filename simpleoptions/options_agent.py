@@ -2,7 +2,6 @@ import gc
 import math
 import random
 import statistics
-import numpy as np
 from numpy.random import Generator as RNG
 
 from copy import copy
