@@ -1,0 +1,23 @@
+name: Ruff Lint Check (All Pushes)
+
+on:
+  push:
+
+jobs:
+  lint-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Check Linting
+        run: ruff check . --select ALL

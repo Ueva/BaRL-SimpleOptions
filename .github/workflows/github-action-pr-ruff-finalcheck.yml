@@ -1,0 +1,27 @@
+name: Ruff Formatting and Linting Check (PRs to Main)
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  compliance-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Check Formatting and Linting
+        run: |
+          ruff check . --exit-zero --diff
+          ruff check . --select ALL

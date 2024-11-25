@@ -24,4 +24,9 @@ setuptools.setup(
         "Natural Language :: English",
     ],
     python_requires=">=3.8",
+    options={
+        "ruff": {
+            "line-length": 120,
+        }
+    },
 )

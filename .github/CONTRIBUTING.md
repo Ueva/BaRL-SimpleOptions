@@ -1,6 +1,7 @@
 # Contributing to SimpleOptions
 
-Thank you for taking the time to consider contributing to SimpleOptions! Please take a quick look through these guidelines to help ensure we can merge your contribution as quickly as possible!
+Thank you for taking the time to consider contributing to SimpleOptions!
+Please take a quick look through these guidelines to help ensure we can merge your contribution as quickly as possible!
 
 ## Testing
 
@@ -18,12 +19,12 @@ You are free to organise your tests as you see fit. For isntance, you use indivi
 
 ## Code Style
 
-You should format your code using the [Black](https://black.readthedocs.io/en/stable/) formatter.
-When using Black to format your code pass in `--line-length 120` and leave all other settings at their default values.
+You should use [ruff](https://docs.astral.sh/ruff/) to format and lint your code.
+When using ruff to format your code, set your `line-length` to `120` and leave all other settings at their default values.
 Both regular Python (.py) and Jupyter notebook (.ipynb) files should be formatted.
 
-You can check whether your code is formatted correctly by checking that our Black formatting GitHub action runs successfully.
-If it fails, check the action's logs to see which file is the culprit, and fix it (usually by running Black) before trying again.
+You can check whether your code is formatted correctly by checking that our ruff formatting and linting GitHub actions run successfully.
+If either job fails, check the action's logs to see which file is the culprit, and fix it before trying again.
 
 ## Versioning
 
