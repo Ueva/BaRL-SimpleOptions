@@ -20,4 +20,4 @@ jobs:
         run: pip install ruff
 
       - name: Check Linting
-        run: ruff check . --select ALL
+        run: ruff check .

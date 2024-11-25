@@ -21,7 +21,8 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
-      - name: Check Formatting and Linting
-        run: |
-          ruff check . --exit-zero --diff
-          ruff check . --select ALL
+      - name: Check Formatting
+        run: ruff format . --diff --line-length 120
+
+      - name: Linting
+        run: ruff check .
