@@ -1,4 +1,3 @@
-import os
 import math
 import copy
 
@@ -7,7 +6,7 @@ import scipy as sci
 import networkx as nx
 
 from tqdm import tqdm
-from typing import List, Dict, Set
+from typing import List
 
 from simpleoptions import BaseEnvironment, BaseOption, PrimitiveOption
 from simpleoptions.implementations import GenericOptionGenerator

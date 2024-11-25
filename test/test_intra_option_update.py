@@ -1,5 +1,3 @@
-import pytest
-
 from simpleoptions import OptionAgent, BaseOption
 
 
@@ -58,7 +56,7 @@ def test_one_step_intra_option_update_1():
     # Set up dummy states, rewards, options, parameters etc. for the test.
     state_trajectory = ["state_1", "state_2"]
     reward_trajectory = [1]
-    initial_values = {"state_1, option": 0, "state_2, 1": 0}
+    # initial_values = {"state_1, option": 0, "state_2, 1": 0} # Implicit due to defaultdict(int).
     alpha = 0.2
     gamma = 0.9
 
@@ -90,7 +88,7 @@ def test_one_step_intra_option_update_2():
     # Set up dummy states, rewards, options, parameters etc. for the test.
     state_trajectory = ["state_1", "state_2"]
     reward_trajectory = [1]
-    initial_values = {"state_1, option": 0, "state_2, 1": 0}
+    # initial_values = {"state_1, option": 0, "state_2, 1": 0} # Implicit due to defaultdict(int).
     alpha = 0.2
     gamma = 0.9
 

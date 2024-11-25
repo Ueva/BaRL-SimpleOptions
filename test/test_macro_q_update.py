@@ -1,5 +1,3 @@
-import pytest
-
 from simpleoptions import BaseOption, OptionAgent
 
 

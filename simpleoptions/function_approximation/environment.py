@@ -3,7 +3,6 @@ import gymnasium as gym
 
 from typing import List, Dict, Tuple, Hashable
 from abc import ABC, abstractmethod
-from copy import copy
 
 from simpleoptions.option import BaseOption
 
@@ -16,7 +15,6 @@ class ApproxBaseEnvironment(ABC):
     """
 
     def __init__(self, render_mode: str = "human"):
-
         self.render_mode = render_mode
 
         # Create initial option sets.

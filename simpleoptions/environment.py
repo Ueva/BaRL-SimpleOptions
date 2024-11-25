@@ -277,7 +277,7 @@ class BaseEnvironment(ABC):
         while not len(current_successor_states) == 0:
             next_successor_states = []
             for successor_state in current_successor_states:
-                if not successor_state in states:
+                if successor_state not in states:
                     states.append(successor_state)
 
                     if not self.is_state_terminal(successor_state):
@@ -314,7 +314,7 @@ class BaseEnvironment(ABC):
         while not len(current_successor_states) == 0:
             next_successor_states = []
             for successor_state in current_successor_states:
-                if not successor_state in states:
+                if successor_state not in states:
                     states.append(successor_state)
 
                     if not self.is_state_terminal(successor_state):
@@ -333,7 +333,6 @@ class BaseEnvironment(ABC):
             # Add directed edge between node and its successors.
             successors = self.get_successors(state)
             for (successor_state, _), transition_prob in successors:
-
                 stg.add_node(successor_state)
                 if stg.has_edge(state, successor_state):
                     stg[state][successor_state]["weight"] += transition_prob

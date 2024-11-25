@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 
 class BaseOption(ABC):
-
     _class_id_counter = 0
 
     """

@@ -1,7 +1,4 @@
-import pytest
-
 from pytest import approx
-from typing import List
 
 from simpleoptions import OptionAgent, BaseOption, BaseEnvironment, PrimitiveOption
 
