@@ -333,7 +333,6 @@ class BaseEnvironment(ABC):
             # Add directed edge between node and its successors.
             successors = self.get_successors(state)
             for (successor_state, _), transition_prob in successors:
-
                 stg.add_node(successor_state)
                 if stg.has_edge(state, successor_state):
                     stg[state][successor_state]["weight"] += transition_prob

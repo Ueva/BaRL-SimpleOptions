@@ -16,7 +16,6 @@ class ApproxBaseEnvironment(ABC):
     """
 
     def __init__(self, render_mode: str = "human"):
-
         self.render_mode = render_mode
 
         # Create initial option sets.
