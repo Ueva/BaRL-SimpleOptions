@@ -20,4 +20,4 @@ jobs:
         run: pip install ruff
 
       - name: Check Formatting
-        run: ruff format . --exit-zero --diff --line-length 120
+        run: ruff format . --diff --line-length 120
