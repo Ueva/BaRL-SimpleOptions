@@ -49,7 +49,12 @@ class SmallRoomsEnv(BaseEnvironment):
             reward += 10
 
         # Return (next_state, reward, terminal, info).
-        return self.current_state, reward, self.is_state_terminal(self.current_state), {}
+        return (
+            self.current_state,
+            reward,
+            self.is_state_terminal(self.current_state),
+            {},
+        )
 
     def get_action_space(self):
         # The agent has four actions (up, down, left, right).

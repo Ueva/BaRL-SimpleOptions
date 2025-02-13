@@ -415,7 +415,11 @@ class OptionAgent:
             if not epoch_eval and episodic_eval:
                 return self.training_log, self.episodic_evaluation_log
             if epoch_eval and episodic_eval:
-                return self.training_log, self.epoch_evaluation_log, self.episodic_evaluation_log
+                return (
+                    self.training_log,
+                    self.epoch_evaluation_log,
+                    self.episodic_evaluation_log,
+                )
 
         else:
             training_epoch_rewards = [
@@ -488,11 +492,11 @@ class OptionAgent:
                         }
                         for key, value in transition.items():
                             if not episodic_eval:
-                                self.epoch_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][key].append(
-                                    value
-                                )
+                                self.epoch_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run + 1}"][
+                                    key
+                                ].append(value)
                             else:
-                                self.episodic_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run+1}"][
+                                self.episodic_evaluation_log[f"evaluation_{eval_number}"][f"run_{test_run + 1}"][
                                     key
                                 ].append(value)
                     # Reset environment and continue evaluation run.

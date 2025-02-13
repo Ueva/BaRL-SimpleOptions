@@ -166,7 +166,13 @@ class DiffusionOptionGenerator(SubgoalOptionGenerator):
 
 
 class DiffusionOption(SubgoalOption):
-    def __init__(self, env: BaseEnvironment, subgoal: Hashable, initiation_set: Set[Hashable], q_table: Dict = None):
+    def __init__(
+        self,
+        env: BaseEnvironment,
+        subgoal: Hashable,
+        initiation_set: Set[Hashable],
+        q_table: Dict = None,
+    ):
         super().__init__(env, subgoal, initiation_set, q_table)
 
     def __str__(self):

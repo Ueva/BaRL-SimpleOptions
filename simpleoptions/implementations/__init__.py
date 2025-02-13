@@ -1,11 +1,22 @@
 # Generic Option Generators.
-from simpleoptions.implementations.generic_option_generator import GenericOptionGenerator
-from simpleoptions.implementations.subgoal_option_generator import SubgoalOptionGenerator, SubgoalOption
+from simpleoptions.implementations.generic_option_generator import (
+    GenericOptionGenerator,
+)
+from simpleoptions.implementations.subgoal_option_generator import (
+    SubgoalOptionGenerator,
+    SubgoalOption,
+)
 
 # Skill Discovery Algorithm Implementations.
 from simpleoptions.implementations.eigenoptions import EigenoptionGenerator, Eigenoption
-from simpleoptions.implementations.diffusion_options import DiffusionOptionGenerator, DiffusionOption
-from simpleoptions.implementations.betweenness import BetweennessOptionGenerator, BetweennessOption
+from simpleoptions.implementations.diffusion_options import (
+    DiffusionOptionGenerator,
+    DiffusionOption,
+)
+from simpleoptions.implementations.betweenness import (
+    BetweennessOptionGenerator,
+    BetweennessOption,
+)
 
 
 __all__ = [
