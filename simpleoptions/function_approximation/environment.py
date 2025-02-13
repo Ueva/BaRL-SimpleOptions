@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import gymnasium as gym
 
@@ -58,6 +60,16 @@ class ApproxBaseEnvironment(ABC):
         Display a representation of the environment's current state.
         """
         pass
+
+    def seed(self, random_seed: int) -> None:
+        """
+        Seed the environment's random number generator(s).
+
+        Args:
+            random_seed (int): The random seed to use for random number generation.
+        """
+        random.seed(random_seed)
+        np.random.seed(random_seed)
 
     @abstractmethod
     def close(self) -> None:
@@ -217,6 +229,9 @@ class GymWrapper(ApproxBaseEnvironment):
 
     def render(self) -> None:
         return self.env.render()
+
+    def seed(self, random_seed: int) -> None:
+        return self.env.seed(random_seed)
 
     def close(self) -> None:
         return self.env.close()

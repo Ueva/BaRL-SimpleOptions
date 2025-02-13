@@ -1,6 +1,7 @@
 import copy
 import random
 
+import numpy as np
 import networkx as nx
 
 from typing import List, Set
@@ -74,6 +75,16 @@ class BaseEnvironment(ABC):
             [type]: [description]
         """
         pass
+
+    def seed(self, random_seed: int) -> None:
+        """
+        Seed the environment's random number generator(s).
+
+        Args:
+            random_seed (int): The random seed to use for random number generation.
+        """
+        random.seed(random_seed)
+        np.random.seed(random_seed)
 
     @abstractmethod
     def close(self):

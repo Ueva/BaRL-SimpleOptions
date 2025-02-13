@@ -1,6 +1,9 @@
 import sys
 
-from simpleoptions.function_approximation.environment import ApproxBaseEnvironment, GymWrapper
+from simpleoptions.function_approximation.environment import (
+    ApproxBaseEnvironment,
+    GymWrapper,
+)
 from simpleoptions.function_approximation.primitive_option import PrimitiveOption
 
 __all__ = ["ApproxBaseEnvironment", "GymWrapper", "PrimitiveOption"]
